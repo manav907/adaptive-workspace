@@ -27,6 +27,7 @@ Until packaged releases are available, install the plugin manually:
 
 Requirements:
 
+- Obsidian 1.13.0 or newer
 - Node.js 18 or newer
 - npm
 

@@ -1,8 +1,9 @@
-import {
+import { PluginSettingTab } from 'obsidian';
+import type {
 	App,
-	PluginSettingTab,
 	SearchComponent,
-	Setting,
+	SettingDefinition,
+	SettingDefinitionItem,
 } from 'obsidian';
 import type AdaptiveWorkspacePlugin from './main';
 
@@ -23,6 +24,20 @@ type SidebarSettingKey =
 	| 'expandCommandRightSidebar'
 	| 'collapseCommandLeftSidebar'
 	| 'collapseCommandRightSidebar';
+
+type SettingKey = keyof AdaptiveWorkspaceSettings;
+
+const SIDEBAR_OPTIONS: Record<SidebarAction, string> = {
+	expand: 'Expand',
+	collapse: 'Collapse',
+	unchanged: 'No change',
+};
+
+const MARKDOWN_MODE_OPTIONS: Record<MarkdownModeAction, string> = {
+	edit: 'Edit',
+	reading: 'Reading',
+	unchanged: 'No change',
+};
 
 export const DEFAULT_SETTINGS: AdaptiveWorkspaceSettings = {
 	expandCommandLeftSidebar: 'expand',
@@ -127,112 +142,86 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 		super(app, plugin);
 	}
 
-	display(): void {
-		this.containerEl.empty();
-		this.containerEl.createEl('p', { text: 'Hello world' });
-
-		new Setting(this.containerEl)
-			.setName('Expand workspace command')
-			.setHeading();
-
-		this.addSidebarActionSetting(
-			'Left sidebar',
-			'Choose what happens to the left sidebar.',
-			'expandCommandLeftSidebar',
-		);
-		this.addSidebarActionSetting(
-			'Right sidebar',
-			'Choose what happens to the right sidebar.',
-			'expandCommandRightSidebar',
-		);
-		this.addMarkdownModeSetting(
-			'Markdown view',
-			'Choose the mode for the active Markdown view.',
-			'expandCommandMarkdownMode',
-		);
-
-		new Setting(this.containerEl)
-			.setName('Collapse workspace command')
-			.setHeading();
-
-		this.addSidebarActionSetting(
-			'Left sidebar',
-			'Choose what happens to the left sidebar.',
-			'collapseCommandLeftSidebar',
-		);
-		this.addSidebarActionSetting(
-			'Right sidebar',
-			'Choose what happens to the right sidebar.',
-			'collapseCommandRightSidebar',
-		);
-		this.addMarkdownModeSetting(
-			'Markdown view',
-			'Choose the mode for the active Markdown view.',
-			'collapseCommandMarkdownMode',
-		);
-
-		new Setting(this.containerEl)
-			.setName('Hotkeys')
-			.setHeading();
-
-		new Setting(this.containerEl)
-			.setName('Configure hotkeys')
-			.setDesc('Assign shortcuts to Adaptive Workspace commands.')
-			.addButton((button) =>
-				button
-					.setButtonText('Open hotkeys')
-					.setCta()
-					.onClick(() => {
-						openPluginHotkeys(this.app, this.plugin.manifest.id);
-					}),
-			);
+	getSettingDefinitions(): SettingDefinitionItem<SettingKey>[] {
+		return [
+			{
+				name: 'Hello world',
+				searchable: false,
+			},
+			{
+				type: 'group',
+				heading: 'Expand workspace command',
+				items: [
+					this.createSidebarSetting(
+						'Left sidebar',
+						'expandCommandLeftSidebar',
+					),
+					this.createSidebarSetting(
+						'Right sidebar',
+						'expandCommandRightSidebar',
+					),
+					this.createMarkdownModeSetting('expandCommandMarkdownMode'),
+				],
+			},
+			{
+				type: 'group',
+				heading: 'Collapse workspace command',
+				items: [
+					this.createSidebarSetting(
+						'Left sidebar',
+						'collapseCommandLeftSidebar',
+					),
+					this.createSidebarSetting(
+						'Right sidebar',
+						'collapseCommandRightSidebar',
+					),
+					this.createMarkdownModeSetting('collapseCommandMarkdownMode'),
+				],
+			},
+			{
+				type: 'group',
+				heading: 'Hotkeys',
+				items: [
+					{
+						name: 'Configure hotkeys',
+						desc: 'Assign shortcuts to Adaptive Workspace commands.',
+						action: () => {
+							openPluginHotkeys(this.app, this.plugin.manifest.id);
+						},
+					},
+				],
+			},
+		];
 	}
 
-	private addSidebarActionSetting(
+	private createSidebarSetting(
 		name: string,
-		description: string,
 		key: SidebarSettingKey,
-	): void {
-		new Setting(this.containerEl)
-			.setName(name)
-			.setDesc(description)
-			.addDropdown((dropdown) =>
-				dropdown
-					.addOption('expand', 'Expand')
-					.addOption('collapse', 'Collapse')
-					.addOption('unchanged', 'No change')
-					.setValue(this.plugin.settings[key])
-					.onChange(async (value) => {
-						if (!isSidebarAction(value)) {
-							return;
-						}
-						this.plugin.settings[key] = value;
-						await this.plugin.saveSettings();
-					}),
-			);
+	): SettingDefinition<SettingKey> {
+		return {
+			name,
+			desc: `Choose what happens to the ${name.toLowerCase()}.`,
+			control: {
+				type: 'dropdown',
+				key,
+				defaultValue: DEFAULT_SETTINGS[key],
+				options: SIDEBAR_OPTIONS,
+			},
+		};
 	}
 
-	private addMarkdownModeSetting(
-		name: string,
-		description: string,
+	private createMarkdownModeSetting(
 		key: 'expandCommandMarkdownMode' | 'collapseCommandMarkdownMode',
-	): void {
-		new Setting(this.containerEl)
-			.setName(name)
-			.setDesc(description)
-			.addDropdown((dropdown) =>
-				dropdown
-					.addOption('edit', 'Edit')
-					.addOption('reading', 'Reading')
-					.addOption('unchanged', 'No change')
-					.setValue(this.plugin.settings[key])
-					.onChange(async (value) => {
-						if (!isMarkdownModeAction(value)) {
-							return;
-						}
-						this.plugin.settings[key] = value;
-						await this.plugin.saveSettings();
-					}),
-			);
+	): SettingDefinition<SettingKey> {
+		return {
+			name: 'Markdown view',
+			desc: 'Choose the mode for the active Markdown view.',
+			control: {
+				type: 'dropdown',
+				key,
+				defaultValue: DEFAULT_SETTINGS[key],
+				options: MARKDOWN_MODE_OPTIONS,
+			},
+		};
 	}
 }

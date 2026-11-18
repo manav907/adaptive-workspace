@@ -1,4 +1,5 @@
-import { App } from 'obsidian';
+import { MarkdownView } from 'obsidian';
+import type { App } from 'obsidian';
 import type {
 	AdaptiveWorkspaceSettings,
 	MarkdownModeAction,
@@ -39,9 +40,9 @@ async function applyMarkdownMode(
 		return;
 	}
 
-	const view = app.workspace.activeLeaf?.view;
+	const view = app.workspace.getActiveViewOfType(MarkdownView);
 
-	if (view?.getViewType() !== 'markdown') {
+	if (!view) {
 		return;
 	}
 
