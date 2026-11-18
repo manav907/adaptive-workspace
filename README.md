@@ -1,8 +1,13 @@
 # Adaptive Workspace
 
-Adaptive Workspace is an Obsidian plugin for creating a more adaptive workspace.
+Adaptive Workspace provides hotkey-ready commands that coordinate Obsidian's sidebars, window zoom, and active Markdown view mode.
 
-The plugin is in early development. Its current implementation provides a **Say hello** command as a minimal working foundation for future workspace features.
+## Commands
+
+- **Adaptive Workspace: Expand workspace** expands both sidebars, zooms in once, and changes the active Markdown view to Live Preview.
+- **Adaptive Workspace: Collapse workspace** collapses both sidebars, zooms out once, and changes the active Markdown view to Reading view.
+
+Assign hotkeys under **Settings → Hotkeys** by searching for “Adaptive Workspace.” The sidebar and zoom actions still run when the active view is not a Markdown note.
 
 ## Installation
 

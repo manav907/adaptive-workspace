@@ -3,7 +3,7 @@
 	"name": "Adaptive Workspace",
 	"version": "0.1.0",
 	"minAppVersion": "1.0.0",
-	"description": "Create a more adaptive workspace in Obsidian.",
+	"description": "Switch sidebars, zoom, and Markdown view modes with hotkey-ready commands.",
 	"author": "manav907",
 	"isDesktopOnly": false
 }
