@@ -1,6 +1,7 @@
 import { App } from 'obsidian';
 import type {
 	AdaptiveWorkspaceSettings,
+	MarkdownModeAction,
 	SidebarAction,
 } from '../settings';
 
@@ -30,20 +31,25 @@ function applySidebarAction(sidebar: Sidebar, action: SidebarAction): void {
 	}
 }
 
-async function setActiveMarkdownState(
+async function applyMarkdownMode(
 	app: App,
-	state: Record<string, unknown>,
+	action: MarkdownModeAction,
 ): Promise<void> {
+	if (action === 'unchanged') {
+		return;
+	}
+
 	const view = app.workspace.activeLeaf?.view;
 
 	if (view?.getViewType() !== 'markdown') {
 		return;
 	}
 
-	await view.setState(
-		{ ...view.getState(), ...state },
-		{ history: false },
-	);
+	const state = action === 'edit'
+		? { mode: 'source', source: false }
+		: { mode: 'preview' };
+
+	await view.setState({ ...view.getState(), ...state }, { history: false });
 }
 
 export async function expandWorkspace(
@@ -60,10 +66,7 @@ export async function expandWorkspace(
 	);
 	executeCommandById(app, 'window:zoom-in');
 
-	await setActiveMarkdownState(app, {
-		mode: 'source',
-		source: false,
-	});
+	await applyMarkdownMode(app, settings.expandCommandMarkdownMode);
 }
 
 export async function collapseWorkspace(
@@ -80,7 +83,5 @@ export async function collapseWorkspace(
 	);
 	executeCommandById(app, 'window:zoom-out');
 
-	await setActiveMarkdownState(app, {
-		mode: 'preview',
-	});
+	await applyMarkdownMode(app, settings.collapseCommandMarkdownMode);
 }

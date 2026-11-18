@@ -9,21 +9,36 @@ import type AdaptiveWorkspacePlugin from './main';
 export interface AdaptiveWorkspaceSettings {
 	expandCommandLeftSidebar: SidebarAction;
 	expandCommandRightSidebar: SidebarAction;
+	expandCommandMarkdownMode: MarkdownModeAction;
 	collapseCommandLeftSidebar: SidebarAction;
 	collapseCommandRightSidebar: SidebarAction;
+	collapseCommandMarkdownMode: MarkdownModeAction;
 }
 
 export type SidebarAction = 'expand' | 'collapse' | 'unchanged';
+export type MarkdownModeAction = 'edit' | 'reading' | 'unchanged';
+
+type SidebarSettingKey =
+	| 'expandCommandLeftSidebar'
+	| 'expandCommandRightSidebar'
+	| 'collapseCommandLeftSidebar'
+	| 'collapseCommandRightSidebar';
 
 export const DEFAULT_SETTINGS: AdaptiveWorkspaceSettings = {
 	expandCommandLeftSidebar: 'expand',
 	expandCommandRightSidebar: 'expand',
+	expandCommandMarkdownMode: 'edit',
 	collapseCommandLeftSidebar: 'collapse',
 	collapseCommandRightSidebar: 'collapse',
+	collapseCommandMarkdownMode: 'reading',
 };
 
 function isSidebarAction(value: unknown): value is SidebarAction {
 	return value === 'expand' || value === 'collapse' || value === 'unchanged';
+}
+
+function isMarkdownModeAction(value: unknown): value is MarkdownModeAction {
+	return value === 'edit' || value === 'reading' || value === 'unchanged';
 }
 
 export function normalizeSettings(data: unknown): AdaptiveWorkspaceSettings {
@@ -42,6 +57,10 @@ export function normalizeSettings(data: unknown): AdaptiveWorkspaceSettings {
 			saved.expandRightSidebar,
 			'expand',
 		),
+		expandCommandMarkdownMode: getMarkdownModeAction(
+			saved.expandCommandMarkdownMode,
+			'edit',
+		),
 		collapseCommandLeftSidebar: getSidebarAction(
 			saved.collapseCommandLeftSidebar,
 			saved.collapseLeftSidebar,
@@ -51,6 +70,10 @@ export function normalizeSettings(data: unknown): AdaptiveWorkspaceSettings {
 			saved.collapseCommandRightSidebar,
 			saved.collapseRightSidebar,
 			'collapse',
+		),
+		collapseCommandMarkdownMode: getMarkdownModeAction(
+			saved.collapseCommandMarkdownMode,
+			'reading',
 		),
 	};
 }
@@ -67,6 +90,13 @@ function getSidebarAction(
 		return legacyEnabled ? defaultAction : 'unchanged';
 	}
 	return defaultAction;
+}
+
+function getMarkdownModeAction(
+	value: unknown,
+	defaultAction: Exclude<MarkdownModeAction, 'unchanged'>,
+): MarkdownModeAction {
+	return isMarkdownModeAction(value) ? value : defaultAction;
 }
 
 interface InternalSettingsManager {
@@ -115,6 +145,11 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 			'Choose what happens to the right sidebar.',
 			'expandCommandRightSidebar',
 		);
+		this.addMarkdownModeSetting(
+			'Markdown view',
+			'Choose the mode for the active Markdown view.',
+			'expandCommandMarkdownMode',
+		);
 
 		new Setting(this.containerEl)
 			.setName('Collapse workspace command')
@@ -129,6 +164,11 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 			'Right sidebar',
 			'Choose what happens to the right sidebar.',
 			'collapseCommandRightSidebar',
+		);
+		this.addMarkdownModeSetting(
+			'Markdown view',
+			'Choose the mode for the active Markdown view.',
+			'collapseCommandMarkdownMode',
 		);
 
 		new Setting(this.containerEl)
@@ -151,7 +191,7 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 	private addSidebarActionSetting(
 		name: string,
 		description: string,
-		key: keyof AdaptiveWorkspaceSettings,
+		key: SidebarSettingKey,
 	): void {
 		new Setting(this.containerEl)
 			.setName(name)
@@ -164,6 +204,30 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings[key])
 					.onChange(async (value) => {
 						if (!isSidebarAction(value)) {
+							return;
+						}
+						this.plugin.settings[key] = value;
+						await this.plugin.saveSettings();
+					}),
+			);
+	}
+
+	private addMarkdownModeSetting(
+		name: string,
+		description: string,
+		key: 'expandCommandMarkdownMode' | 'collapseCommandMarkdownMode',
+	): void {
+		new Setting(this.containerEl)
+			.setName(name)
+			.setDesc(description)
+			.addDropdown((dropdown) =>
+				dropdown
+					.addOption('edit', 'Edit')
+					.addOption('reading', 'Reading')
+					.addOption('unchanged', 'No change')
+					.setValue(this.plugin.settings[key])
+					.onChange(async (value) => {
+						if (!isMarkdownModeAction(value)) {
 							return;
 						}
 						this.plugin.settings[key] = value;

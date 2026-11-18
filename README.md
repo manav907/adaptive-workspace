@@ -11,6 +11,8 @@ Assign hotkeys under **Settings → Hotkeys** by searching for “Adaptive Works
 
 For each command, the left and right sidebars can independently be set to **Expand**, **Collapse**, or **No change** under **Settings → Adaptive Workspace**. Zoom in and zoom out always run with their corresponding commands.
 
+The active Markdown view can also independently be set to **Edit**, **Reading**, or **No change** for each command.
+
 ## Installation
 
 Until packaged releases are available, install the plugin manually:
