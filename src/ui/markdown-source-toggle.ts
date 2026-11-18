@@ -1,4 +1,4 @@
-import { MarkdownView, Notice } from 'obsidian';
+import { MarkdownView } from 'obsidian';
 import type AdaptiveWorkspacePlugin from '../main';
 
 interface ViewActions {
@@ -34,13 +34,6 @@ export function registerMarkdownSourceToggle(
 					plugin.settings.useSourceMode =
 						!plugin.settings.useSourceMode;
 					await plugin.saveSettings();
-					new Notice(
-						`Edit mode will use ${
-							plugin.settings.useSourceMode
-								? 'Source mode'
-								: 'Live Preview'
-						}.`,
-					);
 				},
 			);
 			const sidebarAction = view.addAction(
@@ -50,13 +43,6 @@ export function registerMarkdownSourceToggle(
 					plugin.settings.disableSidebarChanges =
 						!plugin.settings.disableSidebarChanges;
 					await plugin.saveSettings();
-					new Notice(
-						`Sidebar changes ${
-							plugin.settings.disableSidebarChanges
-								? 'disabled'
-								: 'enabled'
-						}.`,
-					);
 				},
 			);
 
