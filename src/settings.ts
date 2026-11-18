@@ -146,7 +146,7 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 		return [
 			{
 				type: 'group',
-				heading: 'Expand workspace command',
+				heading: 'Zoom-in workspace command',
 				items: [
 					this.createSidebarSetting(
 						'Left sidebar',
@@ -161,7 +161,7 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 			},
 			{
 				type: 'group',
-				heading: 'Collapse workspace command',
+				heading: 'Zoom-out workspace command',
 				items: [
 					this.createSidebarSetting(
 						'Left sidebar',

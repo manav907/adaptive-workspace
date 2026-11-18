@@ -5,7 +5,7 @@ import { collapseWorkspace, expandWorkspace } from './workspace';
 export function registerCommands(plugin: AdaptiveWorkspacePlugin): void {
 	plugin.addCommand({
 		id: 'expand-workspace',
-		name: 'Expand workspace',
+		name: 'Zoom-in workspace',
 		callback: async () => {
 			await expandWorkspace(plugin.app, plugin.settings);
 		},
@@ -13,7 +13,7 @@ export function registerCommands(plugin: AdaptiveWorkspacePlugin): void {
 
 	plugin.addCommand({
 		id: 'collapse-workspace',
-		name: 'Collapse workspace',
+		name: 'Zoom-out workspace',
 		callback: async () => {
 			await collapseWorkspace(plugin.app, plugin.settings);
 		},

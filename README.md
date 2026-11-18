@@ -4,8 +4,8 @@ Adaptive Workspace provides hotkey-ready commands that coordinate Obsidian's sid
 
 ## Commands
 
-- **Adaptive Workspace: Expand workspace** expands both sidebars, zooms in once, and changes the active Markdown view to Live Preview.
-- **Adaptive Workspace: Collapse workspace** collapses both sidebars, zooms out once, and changes the active Markdown view to Reading view.
+- **Adaptive Workspace: Zoom-in workspace** zooms in once and applies the configured sidebar and Markdown view actions.
+- **Adaptive Workspace: Zoom-out workspace** zooms out once and applies the configured sidebar and Markdown view actions.
 
 Assign hotkeys under **Settings → Hotkeys** by searching for “Adaptive Workspace.” The sidebar and zoom actions still run when the active view is not a Markdown note.
 
