@@ -9,7 +9,6 @@ import type AdaptiveWorkspacePlugin from './main';
 
 export interface AdaptiveWorkspaceSettings {
 	disableSidebarChanges: boolean;
-	disableMarkdownViewChanges: boolean;
 	useSourceMode: boolean;
 	expandCommandLeftSidebar: SidebarAction;
 	expandCommandRightSidebar: SidebarAction;
@@ -28,34 +27,7 @@ type SidebarSettingKey =
 	| 'collapseCommandLeftSidebar'
 	| 'collapseCommandRightSidebar';
 
-export type BooleanSettingKey =
-	| 'disableSidebarChanges'
-	| 'disableMarkdownViewChanges'
-	| 'useSourceMode';
-
 type SettingKey = keyof AdaptiveWorkspaceSettings;
-
-export const BEHAVIOR_TOGGLE_SETTINGS: ReadonlyArray<{
-	key: BooleanSettingKey;
-	name: string;
-	desc: string;
-}> = [
-	{
-		key: 'disableSidebarChanges',
-		name: 'Disable sidebar changes',
-		desc: 'Keep both sidebars unchanged when running workspace commands.',
-	},
-	{
-		key: 'disableMarkdownViewChanges',
-		name: 'Disable Markdown view changes',
-		desc: 'Keep the active Markdown view in its current mode.',
-	},
-	{
-		key: 'useSourceMode',
-		name: 'Use source mode for editing',
-		desc: 'Open edit-mode Markdown views in source mode instead of Live Preview.',
-	},
-];
 
 const SIDEBAR_OPTIONS: Record<SidebarAction, string> = {
 	expand: 'Expand',
@@ -64,14 +36,13 @@ const SIDEBAR_OPTIONS: Record<SidebarAction, string> = {
 };
 
 const MARKDOWN_MODE_OPTIONS: Record<MarkdownModeAction, string> = {
+	unchanged: 'No change',
 	edit: 'Edit',
 	reading: 'Reading',
-	unchanged: 'No change',
 };
 
 export const DEFAULT_SETTINGS: AdaptiveWorkspaceSettings = {
 	disableSidebarChanges: false,
-	disableMarkdownViewChanges: false,
 	useSourceMode: false,
 	expandCommandLeftSidebar: 'expand',
 	expandCommandRightSidebar: 'expand',
@@ -86,7 +57,9 @@ function isSidebarAction(value: unknown): value is SidebarAction {
 }
 
 function isMarkdownModeAction(value: unknown): value is MarkdownModeAction {
-	return value === 'edit' || value === 'reading' || value === 'unchanged';
+	return value === 'edit'
+		|| value === 'reading'
+		|| value === 'unchanged';
 }
 
 export function normalizeSettings(data: unknown): AdaptiveWorkspaceSettings {
@@ -99,14 +72,7 @@ export function normalizeSettings(data: unknown): AdaptiveWorkspaceSettings {
 			saved.disableSidebarChanges,
 			DEFAULT_SETTINGS.disableSidebarChanges,
 		),
-		disableMarkdownViewChanges: getBoolean(
-			saved.disableMarkdownViewChanges,
-			DEFAULT_SETTINGS.disableMarkdownViewChanges,
-		),
-		useSourceMode: getBoolean(
-			saved.useSourceMode,
-			DEFAULT_SETTINGS.useSourceMode,
-		),
+		useSourceMode: getUseSourceMode(saved),
 		expandCommandLeftSidebar: getSidebarAction(
 			saved.expandCommandLeftSidebar,
 			saved.expandLeftSidebar,
@@ -138,6 +104,20 @@ export function normalizeSettings(data: unknown): AdaptiveWorkspaceSettings {
 	};
 }
 
+function getUseSourceMode(saved: Record<string, unknown>): boolean {
+	const savedModes = [
+		saved.expandCommandMarkdownMode,
+		saved.collapseCommandMarkdownMode,
+	];
+	if (savedModes.includes('source')) {
+		return true;
+	}
+	if (savedModes.includes('live-preview')) {
+		return false;
+	}
+	return getBoolean(saved.useSourceMode, DEFAULT_SETTINGS.useSourceMode);
+}
+
 function getBoolean(value: unknown, defaultValue: boolean): boolean {
 	return typeof value === 'boolean' ? value : defaultValue;
 }
@@ -160,7 +140,13 @@ function getMarkdownModeAction(
 	value: unknown,
 	defaultAction: Exclude<MarkdownModeAction, 'unchanged'>,
 ): MarkdownModeAction {
-	return isMarkdownModeAction(value) ? value : defaultAction;
+	if (isMarkdownModeAction(value)) {
+		return value;
+	}
+	if (value === 'live-preview' || value === 'source') {
+		return 'edit';
+	}
+	return defaultAction;
 }
 
 interface InternalSettingsManager {
@@ -191,26 +177,8 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 		super(app, plugin);
 	}
 
-	async setControlValue(key: string, value: unknown): Promise<void> {
-		await super.setControlValue(key, value);
-		this.plugin.refreshSettingsViews();
-	}
-
 	getSettingDefinitions(): SettingDefinitionItem<SettingKey>[] {
 		return [
-			{
-				type: 'group',
-				heading: 'Behavior',
-				items: BEHAVIOR_TOGGLE_SETTINGS.map(({ key, name, desc }) => ({
-					name,
-					desc,
-					control: {
-						type: 'toggle',
-						key,
-						defaultValue: DEFAULT_SETTINGS[key],
-					},
-				})),
-			},
 			{
 				type: 'group',
 				heading: 'Zoom-in workspace command',

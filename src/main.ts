@@ -6,9 +6,8 @@ import {
 } from './settings';
 import type { AdaptiveWorkspaceSettings } from './settings';
 import {
-	detachViews,
-	refreshViews as refreshWorkspaceViews,
-	registerViews,
+	refreshMarkdownViewActions,
+	registerViewActions,
 } from './ui';
 
 export default class AdaptiveWorkspacePlugin extends Plugin {
@@ -16,22 +15,18 @@ export default class AdaptiveWorkspacePlugin extends Plugin {
 
 	async onload(): Promise<void> {
 		await this.loadSettings();
-		registerViews(this);
+		registerViewActions(this);
 		registerCommands(this);
 		this.addSettingTab(new AdaptiveWorkspaceSettingTab(this.app, this));
 	}
 
-	onunload(): void {
-		detachViews(this);
-	}
-
 	async saveSettings(): Promise<void> {
 		await this.saveData(this.settings);
-		this.refreshSettingsViews();
+		this.refreshViewActions();
 	}
 
-	refreshSettingsViews(): void {
-		refreshWorkspaceViews(this);
+	refreshViewActions(): void {
+		refreshMarkdownViewActions(this);
 	}
 
 	private async loadSettings(): Promise<void> {

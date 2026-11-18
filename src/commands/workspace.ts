@@ -47,9 +47,9 @@ async function applyMarkdownMode(
 		return;
 	}
 
-	const state = action === 'edit'
-		? { mode: 'source', source: useSourceMode }
-		: { mode: 'preview' };
+	const state = action === 'reading'
+		? { mode: 'preview' }
+		: { mode: 'source', source: useSourceMode };
 
 	await view.setState({ ...view.getState(), ...state }, { history: false });
 }
@@ -70,13 +70,11 @@ export async function expandWorkspace(
 	}
 	executeCommandById(app, 'window:zoom-in');
 
-	if (!settings.disableMarkdownViewChanges) {
-		await applyMarkdownMode(
-			app,
-			settings.expandCommandMarkdownMode,
-			settings.useSourceMode,
-		);
-	}
+	await applyMarkdownMode(
+		app,
+		settings.expandCommandMarkdownMode,
+		settings.useSourceMode,
+	);
 }
 
 export async function collapseWorkspace(
@@ -95,11 +93,9 @@ export async function collapseWorkspace(
 	}
 	executeCommandById(app, 'window:zoom-out');
 
-	if (!settings.disableMarkdownViewChanges) {
-		await applyMarkdownMode(
-			app,
-			settings.collapseCommandMarkdownMode,
-			settings.useSourceMode,
-		);
-	}
+	await applyMarkdownMode(
+		app,
+		settings.collapseCommandMarkdownMode,
+		settings.useSourceMode,
+	);
 }
