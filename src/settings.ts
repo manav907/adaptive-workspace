@@ -46,10 +46,10 @@ export const DEFAULT_SETTINGS: AdaptiveWorkspaceSettings = {
 	useSourceMode: false,
 	expandCommandLeftSidebar: 'expand',
 	expandCommandRightSidebar: 'expand',
-	expandCommandMarkdownMode: 'edit',
+	expandCommandMarkdownMode: 'unchanged',
 	collapseCommandLeftSidebar: 'collapse',
 	collapseCommandRightSidebar: 'collapse',
-	collapseCommandMarkdownMode: 'reading',
+	collapseCommandMarkdownMode: 'unchanged',
 };
 
 function isSidebarAction(value: unknown): value is SidebarAction {
@@ -76,30 +76,30 @@ export function normalizeSettings(data: unknown): AdaptiveWorkspaceSettings {
 		expandCommandLeftSidebar: getSidebarAction(
 			saved.expandCommandLeftSidebar,
 			saved.expandLeftSidebar,
-			'expand',
+			DEFAULT_SETTINGS.expandCommandLeftSidebar,
 		),
 		expandCommandRightSidebar: getSidebarAction(
 			saved.expandCommandRightSidebar,
 			saved.expandRightSidebar,
-			'expand',
+			DEFAULT_SETTINGS.expandCommandRightSidebar,
 		),
 		expandCommandMarkdownMode: getMarkdownModeAction(
 			saved.expandCommandMarkdownMode,
-			'edit',
+			DEFAULT_SETTINGS.expandCommandMarkdownMode,
 		),
 		collapseCommandLeftSidebar: getSidebarAction(
 			saved.collapseCommandLeftSidebar,
 			saved.collapseLeftSidebar,
-			'collapse',
+			DEFAULT_SETTINGS.collapseCommandLeftSidebar,
 		),
 		collapseCommandRightSidebar: getSidebarAction(
 			saved.collapseCommandRightSidebar,
 			saved.collapseRightSidebar,
-			'collapse',
+			DEFAULT_SETTINGS.collapseCommandRightSidebar,
 		),
 		collapseCommandMarkdownMode: getMarkdownModeAction(
 			saved.collapseCommandMarkdownMode,
-			'reading',
+			DEFAULT_SETTINGS.collapseCommandMarkdownMode,
 		),
 	};
 }
@@ -125,7 +125,7 @@ function getBoolean(value: unknown, defaultValue: boolean): boolean {
 function getSidebarAction(
 	value: unknown,
 	legacyEnabled: unknown,
-	defaultAction: Exclude<SidebarAction, 'unchanged'>,
+	defaultAction: SidebarAction,
 ): SidebarAction {
 	if (isSidebarAction(value)) {
 		return value;
@@ -138,7 +138,7 @@ function getSidebarAction(
 
 function getMarkdownModeAction(
 	value: unknown,
-	defaultAction: Exclude<MarkdownModeAction, 'unchanged'>,
+	defaultAction: MarkdownModeAction,
 ): MarkdownModeAction {
 	if (isMarkdownModeAction(value)) {
 		return value;
