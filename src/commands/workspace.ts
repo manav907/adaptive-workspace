@@ -1,4 +1,8 @@
 import { App } from 'obsidian';
+import type {
+	AdaptiveWorkspaceSettings,
+	SidebarAction,
+} from '../settings';
 
 interface InternalCommandRegistry {
 	executeCommandById(commandId: string): boolean;
@@ -11,6 +15,19 @@ type AppWithInternalCommands = App & {
 function executeCommandById(app: App, commandId: string): void {
 	const { commands } = app as AppWithInternalCommands;
 	commands?.executeCommandById(commandId);
+}
+
+interface Sidebar {
+	collapse(): void;
+	expand(): void;
+}
+
+function applySidebarAction(sidebar: Sidebar, action: SidebarAction): void {
+	if (action === 'expand') {
+		sidebar.expand();
+	} else if (action === 'collapse') {
+		sidebar.collapse();
+	}
 }
 
 async function setActiveMarkdownState(
@@ -29,9 +46,18 @@ async function setActiveMarkdownState(
 	);
 }
 
-export async function expandWorkspace(app: App): Promise<void> {
-	app.workspace.leftSplit.expand();
-	app.workspace.rightSplit.expand();
+export async function expandWorkspace(
+	app: App,
+	settings: AdaptiveWorkspaceSettings,
+): Promise<void> {
+	applySidebarAction(
+		app.workspace.leftSplit,
+		settings.expandCommandLeftSidebar,
+	);
+	applySidebarAction(
+		app.workspace.rightSplit,
+		settings.expandCommandRightSidebar,
+	);
 	executeCommandById(app, 'window:zoom-in');
 
 	await setActiveMarkdownState(app, {
@@ -40,9 +66,18 @@ export async function expandWorkspace(app: App): Promise<void> {
 	});
 }
 
-export async function collapseWorkspace(app: App): Promise<void> {
-	app.workspace.leftSplit.collapse();
-	app.workspace.rightSplit.collapse();
+export async function collapseWorkspace(
+	app: App,
+	settings: AdaptiveWorkspaceSettings,
+): Promise<void> {
+	applySidebarAction(
+		app.workspace.leftSplit,
+		settings.collapseCommandLeftSidebar,
+	);
+	applySidebarAction(
+		app.workspace.rightSplit,
+		settings.collapseCommandRightSidebar,
+	);
 	executeCommandById(app, 'window:zoom-out');
 
 	await setActiveMarkdownState(app, {
