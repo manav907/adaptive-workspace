@@ -145,10 +145,6 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 	getSettingDefinitions(): SettingDefinitionItem<SettingKey>[] {
 		return [
 			{
-				name: 'Hello world',
-				searchable: false,
-			},
-			{
 				type: 'group',
 				heading: 'Expand workspace command',
 				items: [
