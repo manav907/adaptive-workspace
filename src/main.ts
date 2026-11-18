@@ -5,7 +5,11 @@ import {
 	normalizeSettings,
 } from './settings';
 import type { AdaptiveWorkspaceSettings } from './settings';
-import { detachViews, registerViews } from './ui';
+import {
+	detachViews,
+	refreshViews as refreshWorkspaceViews,
+	registerViews,
+} from './ui';
 
 export default class AdaptiveWorkspacePlugin extends Plugin {
 	settings!: AdaptiveWorkspaceSettings;
@@ -19,6 +23,15 @@ export default class AdaptiveWorkspacePlugin extends Plugin {
 
 	onunload(): void {
 		detachViews(this);
+	}
+
+	async saveSettings(): Promise<void> {
+		await this.saveData(this.settings);
+		this.refreshSettingsViews();
+	}
+
+	refreshSettingsViews(): void {
+		refreshWorkspaceViews(this);
 	}
 
 	private async loadSettings(): Promise<void> {

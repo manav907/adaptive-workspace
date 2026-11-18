@@ -8,6 +8,9 @@ import type {
 import type AdaptiveWorkspacePlugin from './main';
 
 export interface AdaptiveWorkspaceSettings {
+	disableSidebarChanges: boolean;
+	disableMarkdownViewChanges: boolean;
+	useSourceMode: boolean;
 	expandCommandLeftSidebar: SidebarAction;
 	expandCommandRightSidebar: SidebarAction;
 	expandCommandMarkdownMode: MarkdownModeAction;
@@ -25,7 +28,34 @@ type SidebarSettingKey =
 	| 'collapseCommandLeftSidebar'
 	| 'collapseCommandRightSidebar';
 
+export type BooleanSettingKey =
+	| 'disableSidebarChanges'
+	| 'disableMarkdownViewChanges'
+	| 'useSourceMode';
+
 type SettingKey = keyof AdaptiveWorkspaceSettings;
+
+export const BEHAVIOR_TOGGLE_SETTINGS: ReadonlyArray<{
+	key: BooleanSettingKey;
+	name: string;
+	desc: string;
+}> = [
+	{
+		key: 'disableSidebarChanges',
+		name: 'Disable sidebar changes',
+		desc: 'Keep both sidebars unchanged when running workspace commands.',
+	},
+	{
+		key: 'disableMarkdownViewChanges',
+		name: 'Disable Markdown view changes',
+		desc: 'Keep the active Markdown view in its current mode.',
+	},
+	{
+		key: 'useSourceMode',
+		name: 'Use source mode for editing',
+		desc: 'Open edit-mode Markdown views in source mode instead of Live Preview.',
+	},
+];
 
 const SIDEBAR_OPTIONS: Record<SidebarAction, string> = {
 	expand: 'Expand',
@@ -40,6 +70,9 @@ const MARKDOWN_MODE_OPTIONS: Record<MarkdownModeAction, string> = {
 };
 
 export const DEFAULT_SETTINGS: AdaptiveWorkspaceSettings = {
+	disableSidebarChanges: false,
+	disableMarkdownViewChanges: false,
+	useSourceMode: false,
 	expandCommandLeftSidebar: 'expand',
 	expandCommandRightSidebar: 'expand',
 	expandCommandMarkdownMode: 'edit',
@@ -62,6 +95,18 @@ export function normalizeSettings(data: unknown): AdaptiveWorkspaceSettings {
 		: {};
 
 	return {
+		disableSidebarChanges: getBoolean(
+			saved.disableSidebarChanges,
+			DEFAULT_SETTINGS.disableSidebarChanges,
+		),
+		disableMarkdownViewChanges: getBoolean(
+			saved.disableMarkdownViewChanges,
+			DEFAULT_SETTINGS.disableMarkdownViewChanges,
+		),
+		useSourceMode: getBoolean(
+			saved.useSourceMode,
+			DEFAULT_SETTINGS.useSourceMode,
+		),
 		expandCommandLeftSidebar: getSidebarAction(
 			saved.expandCommandLeftSidebar,
 			saved.expandLeftSidebar,
@@ -91,6 +136,10 @@ export function normalizeSettings(data: unknown): AdaptiveWorkspaceSettings {
 			'reading',
 		),
 	};
+}
+
+function getBoolean(value: unknown, defaultValue: boolean): boolean {
+	return typeof value === 'boolean' ? value : defaultValue;
 }
 
 function getSidebarAction(
@@ -142,8 +191,26 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 		super(app, plugin);
 	}
 
+	async setControlValue(key: string, value: unknown): Promise<void> {
+		await super.setControlValue(key, value);
+		this.plugin.refreshSettingsViews();
+	}
+
 	getSettingDefinitions(): SettingDefinitionItem<SettingKey>[] {
 		return [
+			{
+				type: 'group',
+				heading: 'Behavior',
+				items: BEHAVIOR_TOGGLE_SETTINGS.map(({ key, name, desc }) => ({
+					name,
+					desc,
+					control: {
+						type: 'toggle',
+						key,
+						defaultValue: DEFAULT_SETTINGS[key],
+					},
+				})),
+			},
 			{
 				type: 'group',
 				heading: 'Zoom-in workspace command',

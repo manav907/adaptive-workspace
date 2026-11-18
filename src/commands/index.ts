@@ -21,7 +21,7 @@ export function registerCommands(plugin: AdaptiveWorkspacePlugin): void {
 
 	plugin.addCommand({
 		id: 'open-hello-world',
-		name: 'Open Hello world',
+		name: 'Open workspace controls',
 		callback: async () => {
 			await openHelloWorldView(plugin.app);
 		},

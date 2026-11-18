@@ -1,10 +1,17 @@
-import { ItemView } from 'obsidian';
+import { ItemView, Setting } from 'obsidian';
 import type { App, WorkspaceLeaf } from 'obsidian';
+import {
+	BEHAVIOR_TOGGLE_SETTINGS,
+} from '../settings';
+import type AdaptiveWorkspacePlugin from '../main';
 
 export const HELLO_WORLD_VIEW_TYPE = 'adaptive-workspace-hello-world';
 
 export class HelloWorldView extends ItemView {
-	constructor(leaf: WorkspaceLeaf) {
+	constructor(
+		leaf: WorkspaceLeaf,
+		private readonly plugin: AdaptiveWorkspacePlugin,
+	) {
 		super(leaf);
 	}
 
@@ -13,12 +20,30 @@ export class HelloWorldView extends ItemView {
 	}
 
 	getDisplayText(): string {
-		return 'Hello world';
+		return 'Adaptive Workspace';
 	}
 
 	async onOpen(): Promise<void> {
+		this.renderSettings();
+	}
+
+	renderSettings(): void {
 		this.contentEl.empty();
-		this.contentEl.createEl('p', { text: 'Hello world' });
+		this.contentEl.createEl('h2', { text: 'Adaptive Workspace' });
+
+		for (const { key, name, desc } of BEHAVIOR_TOGGLE_SETTINGS) {
+			new Setting(this.contentEl)
+				.setName(name)
+				.setDesc(desc)
+				.addToggle((toggle) => {
+					toggle
+						.setValue(this.plugin.settings[key])
+						.onChange(async (value) => {
+							this.plugin.settings[key] = value;
+							await this.plugin.saveSettings();
+						});
+				});
+		}
 	}
 }
 

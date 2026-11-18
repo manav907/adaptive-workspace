@@ -35,6 +35,7 @@ function applySidebarAction(sidebar: Sidebar, action: SidebarAction): void {
 async function applyMarkdownMode(
 	app: App,
 	action: MarkdownModeAction,
+	useSourceMode: boolean,
 ): Promise<void> {
 	if (action === 'unchanged') {
 		return;
@@ -47,7 +48,7 @@ async function applyMarkdownMode(
 	}
 
 	const state = action === 'edit'
-		? { mode: 'source', source: false }
+		? { mode: 'source', source: useSourceMode }
 		: { mode: 'preview' };
 
 	await view.setState({ ...view.getState(), ...state }, { history: false });
@@ -57,32 +58,48 @@ export async function expandWorkspace(
 	app: App,
 	settings: AdaptiveWorkspaceSettings,
 ): Promise<void> {
-	applySidebarAction(
-		app.workspace.leftSplit,
-		settings.expandCommandLeftSidebar,
-	);
-	applySidebarAction(
-		app.workspace.rightSplit,
-		settings.expandCommandRightSidebar,
-	);
+	if (!settings.disableSidebarChanges) {
+		applySidebarAction(
+			app.workspace.leftSplit,
+			settings.expandCommandLeftSidebar,
+		);
+		applySidebarAction(
+			app.workspace.rightSplit,
+			settings.expandCommandRightSidebar,
+		);
+	}
 	executeCommandById(app, 'window:zoom-in');
 
-	await applyMarkdownMode(app, settings.expandCommandMarkdownMode);
+	if (!settings.disableMarkdownViewChanges) {
+		await applyMarkdownMode(
+			app,
+			settings.expandCommandMarkdownMode,
+			settings.useSourceMode,
+		);
+	}
 }
 
 export async function collapseWorkspace(
 	app: App,
 	settings: AdaptiveWorkspaceSettings,
 ): Promise<void> {
-	applySidebarAction(
-		app.workspace.leftSplit,
-		settings.collapseCommandLeftSidebar,
-	);
-	applySidebarAction(
-		app.workspace.rightSplit,
-		settings.collapseCommandRightSidebar,
-	);
+	if (!settings.disableSidebarChanges) {
+		applySidebarAction(
+			app.workspace.leftSplit,
+			settings.collapseCommandLeftSidebar,
+		);
+		applySidebarAction(
+			app.workspace.rightSplit,
+			settings.collapseCommandRightSidebar,
+		);
+	}
 	executeCommandById(app, 'window:zoom-out');
 
-	await applyMarkdownMode(app, settings.collapseCommandMarkdownMode);
+	if (!settings.disableMarkdownViewChanges) {
+		await applyMarkdownMode(
+			app,
+			settings.collapseCommandMarkdownMode,
+			settings.useSourceMode,
+		);
+	}
 }
