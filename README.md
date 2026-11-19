@@ -13,7 +13,7 @@ The default hotkeys are **Mod+=** and **Mod+-**.
 
 ## Mouse wheel
 
-Optionally hold the middle mouse button and scroll to run the workspace commands. The direction can be inverted in the plugin settings.
+Middle-mouse wheel control is enabled by default. Hold the middle mouse button and scroll to run the workspace commands. While enabled, the plugin captures middle-button clicks, so middle-click autoscroll is unavailable. The control can be disabled or its direction inverted in the plugin settings.
 
 ## Installation
 
@@ -30,7 +30,7 @@ Until packaged releases are available, install the plugin manually:
 Requirements:
 
 - Obsidian 1.13.0 or newer
-- Node.js 18 or newer
+- Node.js 20.19, 22.13, or 24 and newer
 - npm
 
 Install dependencies and start the development watcher:

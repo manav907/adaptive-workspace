@@ -337,7 +337,7 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 						},
 					},
 					{
-						name: 'Editing mode in status bar',
+						name: 'Obsidian editing mode in status bar',
 						control: {
 							type: 'toggle',
 							key: 'showEditorStatus',

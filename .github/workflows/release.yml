@@ -21,6 +21,43 @@ jobs:
                   node-version: 24
                   cache: 'npm'
 
+            - name: Validate release metadata
+              env:
+                  RELEASE_TAG: ${{ github.ref_name }}
+              run: |
+                  node --input-type=module <<'EOF'
+                  import { readFile } from 'node:fs/promises';
+
+                  const readJson = async (path) =>
+                      JSON.parse(await readFile(path, 'utf8'));
+                  const packageMetadata = await readJson('package.json');
+                  const manifest = await readJson('manifest.json');
+                  const versions = await readJson('versions.json');
+                  const failures = [];
+
+                  if (process.env.RELEASE_TAG !== manifest.version) {
+                      failures.push(
+                          `Tag ${process.env.RELEASE_TAG} does not match manifest version ${manifest.version}.`,
+                      );
+                  }
+                  if (packageMetadata.version !== manifest.version) {
+                      failures.push(
+                          `Package version ${packageMetadata.version} does not match manifest version ${manifest.version}.`,
+                      );
+                  }
+                  if (versions[manifest.version] !== manifest.minAppVersion) {
+                      failures.push(
+                          `versions.json must map ${manifest.version} to ${manifest.minAppVersion}.`,
+                      );
+                  }
+
+                  if (failures.length > 0) {
+                      throw new Error(failures.join('\n'));
+                  }
+
+                  console.log(`Validated release ${manifest.version}.`);
+                  EOF
+
             - name: Build plugin
               run: |
                   npm ci

@@ -14,7 +14,6 @@ export function refreshUi(plugin: AdaptiveWorkspacePlugin): void {
 }
 
 export function registerUi(plugin: AdaptiveWorkspacePlugin): void {
-	plugin.app.workspace.detachLeavesOfType('adaptive-workspace-hello-world');
 	registerMarkdownHeaderControls(plugin);
 	registerSidebarStatusItem(plugin);
 }
