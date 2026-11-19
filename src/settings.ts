@@ -239,81 +239,12 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 		}
 
 		await super.setControlValue(key, value);
+		this.refreshDomState();
 		this.plugin.refreshUi();
 	}
 
 	getSettingDefinitions(): SettingDefinitionItem<SettingKey>[] {
 		return [
-			{
-				type: 'group',
-				heading: 'Status bar',
-				items: [
-					{
-						name: 'Editing mode control',
-						control: {
-							type: 'toggle',
-							key: 'showEditorStatus',
-							defaultValue: false,
-						},
-					},
-					{
-						name: 'Sidebar changes control',
-						control: {
-							type: 'toggle',
-							key: 'showSidebarStatusItem',
-							defaultValue: DEFAULT_SETTINGS.showSidebarStatusItem,
-						},
-					},
-				],
-			},
-			{
-				type: 'group',
-				heading: 'Markdown header',
-				items: [
-					{
-						name: 'Editing mode control',
-						control: {
-							type: 'toggle',
-							key: 'showEditingModeHeaderControl',
-							defaultValue:
-								DEFAULT_SETTINGS.showEditingModeHeaderControl,
-						},
-					},
-					{
-						name: 'Sidebar changes control',
-						control: {
-							type: 'toggle',
-							key: 'showSidebarChangesHeaderControl',
-							defaultValue:
-								DEFAULT_SETTINGS.showSidebarChangesHeaderControl,
-						},
-					},
-				],
-			},
-			{
-				type: 'group',
-				heading: 'Mouse',
-				items: [
-					{
-						name: 'Middle mouse + wheel',
-						control: {
-							type: 'toggle',
-							key: 'enableMiddleMouseWheel',
-							defaultValue:
-								DEFAULT_SETTINGS.enableMiddleMouseWheel,
-						},
-					},
-					{
-						name: 'Invert direction',
-						control: {
-							type: 'toggle',
-							key: 'invertMiddleMouseWheel',
-							defaultValue:
-								DEFAULT_SETTINGS.invertMiddleMouseWheel,
-						},
-					},
-				],
-			},
 			{
 				type: 'group',
 				heading: 'Zoom-in workspace',
@@ -346,12 +277,79 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 			},
 			{
 				type: 'group',
-				heading: 'Hotkeys',
+				heading: 'Input',
 				items: [
 					{
-						name: 'Open hotkeys',
-						action: () => {
-							openPluginHotkeys(this.app, this.plugin.manifest.id);
+						name: 'Hotkeys',
+						render: (setting) => {
+							setting.addButton((button) => button
+								.setButtonText('Configure')
+								.onClick(() => {
+									openPluginHotkeys(
+										this.app,
+										this.plugin.manifest.id,
+									);
+								}));
+						},
+					},
+					{
+						name: 'Enable middle mouse + wheel',
+						control: {
+							type: 'toggle',
+							key: 'enableMiddleMouseWheel',
+							defaultValue:
+								DEFAULT_SETTINGS.enableMiddleMouseWheel,
+						},
+					},
+					{
+						name: 'Invert wheel direction',
+						control: {
+							type: 'toggle',
+							key: 'invertMiddleMouseWheel',
+							defaultValue:
+								DEFAULT_SETTINGS.invertMiddleMouseWheel,
+							disabled: () =>
+								!this.plugin.settings.enableMiddleMouseWheel,
+						},
+					},
+				],
+			},
+			{
+				type: 'group',
+				heading: 'Interface controls',
+				items: [
+					{
+						name: 'Editing mode in Markdown header',
+						control: {
+							type: 'toggle',
+							key: 'showEditingModeHeaderControl',
+							defaultValue:
+								DEFAULT_SETTINGS.showEditingModeHeaderControl,
+						},
+					},
+					{
+						name: 'Sidebar changes in Markdown header',
+						control: {
+							type: 'toggle',
+							key: 'showSidebarChangesHeaderControl',
+							defaultValue:
+								DEFAULT_SETTINGS.showSidebarChangesHeaderControl,
+						},
+					},
+					{
+						name: 'Editing mode in status bar',
+						control: {
+							type: 'toggle',
+							key: 'showEditorStatus',
+							defaultValue: false,
+						},
+					},
+					{
+						name: 'Sidebar changes in status bar',
+						control: {
+							type: 'toggle',
+							key: 'showSidebarStatusItem',
+							defaultValue: DEFAULT_SETTINGS.showSidebarStatusItem,
 						},
 					},
 				],
