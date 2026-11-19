@@ -1,6 +1,11 @@
 import { setIcon, setTooltip } from 'obsidian';
 import type AdaptiveWorkspacePlugin from '../main';
 import { isControlInStatusBar } from '../settings';
+import {
+	getEditingModePresentation,
+	getSidebarChangesPresentation,
+} from './control-presentation';
+import type { ControlPresentation } from './control-presentation';
 
 interface StatusBarControls {
 	editingMode: HTMLElement;
@@ -11,15 +16,17 @@ const controls = new WeakMap<AdaptiveWorkspacePlugin, StatusBarControls>();
 
 function updateControl(
 	element: HTMLElement,
-	active: boolean,
-	label: string,
-	icon: string,
+	presentation: ControlPresentation,
 ): void {
-	element.classList.toggle('is-active', active);
-	element.setAttribute('aria-pressed', String(active));
-	element.setAttribute('aria-label', label);
-	setIcon(element, icon);
-	setTooltip(element, label);
+	element.classList.toggle('is-active', presentation.active);
+	element.setAttribute('aria-pressed', String(presentation.pressed));
+	element.setAttribute('aria-label', presentation.label);
+	setIcon(element, presentation.icon);
+	const statusText = document.createElement('span');
+	statusText.classList.add('plugin-adaptive-workspace-status-label');
+	statusText.textContent = presentation.statusText;
+	element.appendChild(statusText);
+	setTooltip(element, presentation.label);
 }
 
 export function refreshStatusBarControls(
@@ -45,21 +52,11 @@ export function refreshStatusBarControls(
 
 	updateControl(
 		statusBarControls.editingMode,
-		plugin.settings.useSourceMode,
-		plugin.settings.useSourceMode
-			? 'Use Live Preview for Edit'
-			: 'Use source mode for Edit',
-		'code-xml',
+		getEditingModePresentation(plugin.settings),
 	);
 	updateControl(
 		statusBarControls.sidebarChanges,
-		plugin.settings.disableSidebarChanges,
-		plugin.settings.disableSidebarChanges
-			? 'Enable sidebar changes'
-			: 'Disable sidebar changes',
-		plugin.settings.disableSidebarChanges
-			? 'panel-left-close'
-			: 'panels-top-left',
+		getSidebarChangesPresentation(plugin.settings),
 	);
 }
 

@@ -1,8 +1,17 @@
 .plugin-adaptive-workspace-control.is-active,
+.clickable-icon.plugin-adaptive-workspace-control.is-active:hover,
 .status-bar-item.plugin-adaptive-workspace-control.is-active:hover {
 	color: var(--interactive-accent);
 }
 
 .plugin-adaptive-workspace-control.plugin-adaptive-workspace-is-hidden {
 	display: none !important;
+}
+
+.status-bar-item.plugin-adaptive-workspace-control {
+	gap: var(--size-2-1);
+}
+
+.plugin-adaptive-workspace-status-label {
+	white-space: nowrap;
 }

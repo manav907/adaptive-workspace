@@ -1,6 +1,11 @@
-import { MarkdownView } from 'obsidian';
+import { MarkdownView, setIcon, setTooltip } from 'obsidian';
 import type AdaptiveWorkspacePlugin from '../main';
 import { isControlInHeader } from '../settings';
+import {
+	getEditingModePresentation,
+	getSidebarChangesPresentation,
+} from './control-presentation';
+import type { ControlPresentation } from './control-presentation';
 
 interface ViewActions {
 	sourceMode: HTMLElement;
@@ -28,9 +33,10 @@ export function registerMarkdownSourceToggle(
 			}
 
 			const view = leaf.view;
+			const editingMode = getEditingModePresentation(plugin.settings);
 			const sourceModeAction = view.addAction(
-				'code-xml',
-				'Use source mode for Edit',
+				editingMode.icon,
+				editingMode.label,
 				async () => {
 					plugin.settings.useSourceMode =
 						!plugin.settings.useSourceMode;
@@ -40,9 +46,10 @@ export function registerMarkdownSourceToggle(
 			sourceModeAction.classList.add(
 				'plugin-adaptive-workspace-control',
 			);
+			const sidebarChanges = getSidebarChangesPresentation(plugin.settings);
 			const sidebarAction = view.addAction(
-				'panel-left',
-				'Disable sidebar changes',
+				sidebarChanges.icon,
+				sidebarChanges.label,
 				async () => {
 					plugin.settings.disableSidebarChanges =
 						!plugin.settings.disableSidebarChanges;
@@ -62,12 +69,13 @@ export function registerMarkdownSourceToggle(
 
 	const updateAction = (
 		action: HTMLElement,
-		active: boolean,
-		label: string,
+		presentation: ControlPresentation,
 	): void => {
-		action.classList.toggle('is-active', active);
-		action.setAttribute('aria-pressed', String(active));
-		action.setAttribute('aria-label', label);
+		action.classList.toggle('is-active', presentation.active);
+		action.setAttribute('aria-pressed', String(presentation.pressed));
+		action.setAttribute('aria-label', presentation.label);
+		setIcon(action, presentation.icon);
+		setTooltip(action, presentation.label);
 	};
 
 	const refreshActions = (): void => {
@@ -94,17 +102,11 @@ export function registerMarkdownSourceToggle(
 
 			updateAction(
 				actions.sourceMode,
-				plugin.settings.useSourceMode,
-				plugin.settings.useSourceMode
-					? 'Use Live Preview for Edit'
-					: 'Use source mode for Edit',
+				getEditingModePresentation(plugin.settings),
 			);
 			updateAction(
 				actions.sidebars,
-				plugin.settings.disableSidebarChanges,
-				plugin.settings.disableSidebarChanges
-					? 'Enable sidebar changes'
-					: 'Disable sidebar changes',
+				getSidebarChangesPresentation(plugin.settings),
 			);
 		}
 	};

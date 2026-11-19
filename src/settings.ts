@@ -266,7 +266,7 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 				items: [
 					{
 						name: 'Editing mode control',
-						desc: 'Choose where to show the Source mode and Live Preview control.',
+						desc: 'Choose where to show the control for the editing mode used by workspace commands.',
 						control: {
 							type: 'dropdown',
 							key: 'editingModeControlLocation',
@@ -276,7 +276,7 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 					},
 					{
 						name: 'Sidebar changes control',
-						desc: 'Choose where to show the sidebar changes control.',
+						desc: 'Choose where to show the control that allows workspace commands to change sidebars.',
 						control: {
 							type: 'dropdown',
 							key: 'sidebarChangesControlLocation',
