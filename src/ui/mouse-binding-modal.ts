@@ -22,13 +22,10 @@ export class MouseBindingModal extends Modal {
 	onOpen(): void {
 		this.containerEl.addClass('adaptive-workspace-mouse-binding-modal');
 		this.setTitle('Set mouse binding');
-		this.contentEl.createEl('p', {
-			text: 'Hold keyboard modifiers and mouse buttons, then scroll or press another mouse button.',
-		});
 
 		const captureEl = this.contentEl.createDiv({
 			cls: 'adaptive-workspace-mouse-capture',
-			text: 'Recording anywhere in this window. For example, hold Mouse button 5, scroll up, then release it.',
+			text: 'Hold modifiers, then scroll or click.',
 		});
 		captureEl.tabIndex = 0;
 		captureEl.focus();
@@ -66,7 +63,7 @@ export class MouseBindingModal extends Modal {
 				&& !hasModifier(binding)
 				&& binding.heldButtons.length === 0) {
 				showFeedback(
-					'Primary and secondary buttons require a keyboard modifier.',
+					'Left and right click require a modifier.',
 					true,
 				);
 				return;
@@ -88,7 +85,7 @@ export class MouseBindingModal extends Modal {
 				if (heldButtons.size > 0) {
 					pendingBinding = binding;
 					showFeedback(
-						`${formatMouseBinding(binding)} — release the held mouse button to save.`,
+						`Release to save: ${formatMouseBinding(binding)}`,
 					);
 				} else {
 					choose(binding);
@@ -104,7 +101,7 @@ export class MouseBindingModal extends Modal {
 			heldButtons.add(event.button);
 			startedButtons.add(event.button);
 			showFeedback(
-				`${formatMouseBinding(createButtonBinding(event))} held — scroll now, or release to bind it alone.`,
+				`${formatMouseBinding(createButtonBinding(event))} — scroll or release`,
 			);
 		};
 
@@ -165,7 +162,7 @@ export class MouseBindingModal extends Modal {
 
 		const controls = new Setting(this.contentEl)
 			.addButton((button) => button
-				.setButtonText('Clear binding')
+				.setButtonText('Clear')
 				.onClick(() => {
 					this.onChoose(null);
 					this.close();

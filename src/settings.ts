@@ -35,7 +35,12 @@ export interface AdaptiveWorkspaceSettings {
 }
 
 export type SidebarAction = 'expand' | 'collapse' | 'unchanged';
-export type MarkdownModeAction = 'edit' | 'reading' | 'unchanged';
+export type MarkdownModeAction =
+	| 'edit'
+	| 'live-preview'
+	| 'source'
+	| 'reading'
+	| 'unchanged';
 
 type SidebarSettingKey =
 	| 'expandCommandLeftSidebar'
@@ -54,6 +59,8 @@ const SIDEBAR_OPTIONS: Record<SidebarAction, string> = {
 const MARKDOWN_MODE_OPTIONS: Record<MarkdownModeAction, string> = {
 	unchanged: 'No change',
 	edit: 'Edit',
+	'live-preview': 'Live Preview',
+	source: 'Source mode',
 	reading: 'Reading',
 };
 
@@ -76,6 +83,8 @@ function isSidebarAction(value: unknown): value is SidebarAction {
 
 function isMarkdownModeAction(value: unknown): value is MarkdownModeAction {
 	return value === 'edit'
+		|| value === 'live-preview'
+		|| value === 'source'
 		|| value === 'reading'
 		|| value === 'unchanged';
 }
@@ -164,9 +173,6 @@ function getMarkdownModeAction(
 	if (isMarkdownModeAction(value)) {
 		return value;
 	}
-	if (value === 'live-preview' || value === 'source') {
-		return 'edit';
-	}
 	return defaultAction;
 }
 
@@ -226,8 +232,7 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 				heading: 'Status bar',
 				items: [
 					{
-						name: 'Show editing mode control',
-						desc: "Show Obsidian's editing-mode control in the status bar.",
+						name: 'Editing mode control',
 						control: {
 							type: 'toggle',
 							key: 'showEditorStatus',
@@ -235,8 +240,7 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 						},
 					},
 					{
-						name: 'Show sidebar changes control',
-						desc: 'Show the sidebar-change control in the status bar.',
+						name: 'Sidebar changes control',
 						control: {
 							type: 'toggle',
 							key: 'showSidebarStatusItem',
@@ -247,7 +251,7 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 			},
 			{
 				type: 'group',
-				heading: 'Zoom-in workspace command',
+				heading: 'Zoom-in workspace',
 				items: [
 					this.createMouseBindingSetting(
 						'expandCommandMouseBinding',
@@ -265,7 +269,7 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 			},
 			{
 				type: 'group',
-				heading: 'Zoom-out workspace command',
+				heading: 'Zoom-out workspace',
 				items: [
 					this.createMouseBindingSetting(
 						'collapseCommandMouseBinding',
@@ -286,8 +290,7 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 				heading: 'Hotkeys',
 				items: [
 					{
-						name: 'Configure hotkeys',
-						desc: 'Assign shortcuts to Adaptive Workspace commands.',
+						name: 'Open hotkeys',
 						action: () => {
 							openPluginHotkeys(this.app, this.plugin.manifest.id);
 						},
@@ -302,12 +305,11 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 	): SettingDefinition<SettingKey> {
 		return {
 			name: 'Mouse binding',
-			desc: 'Assign a wheel direction or mouse button with optional keyboard and held-mouse-button modifiers.',
 			render: (setting) => {
 				const binding = this.plugin.settings[key];
 				setting.addButton((button) => button
 					.setButtonText(formatMouseBinding(binding))
-					.setTooltip('Record mouse binding')
+					.setTooltip('Set binding')
 					.onClick(() => {
 						new MouseBindingModal(this.app, (newBinding) => {
 							void this.setMouseBinding(key, newBinding);
@@ -317,7 +319,7 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 				if (binding) {
 					setting.addExtraButton((button) => button
 						.setIcon('x')
-						.setTooltip('Clear mouse binding')
+						.setTooltip('Clear binding')
 						.onClick(() => {
 							void this.setMouseBinding(key, null);
 						}));
@@ -349,7 +351,6 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 	): SettingDefinition<SettingKey> {
 		return {
 			name,
-			desc: `Choose what happens to the ${name.toLowerCase()}.`,
 			control: {
 				type: 'dropdown',
 				key,
@@ -364,7 +365,6 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 	): SettingDefinition<SettingKey> {
 		return {
 			name: 'Markdown view',
-			desc: 'Choose the mode for the active Markdown view.',
 			control: {
 				type: 'dropdown',
 				key,

@@ -1,7 +1,7 @@
 {
 	"name": "adaptive-workspace",
 	"version": "0.1.0",
-	"description": "Switch sidebars, zoom, and Markdown view modes with hotkey-ready commands.",
+	"description": "Control zoom, sidebars, and Markdown views.",
 	"main": "main.js",
 	"type": "module",
 	"private": true,

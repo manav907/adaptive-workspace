@@ -1,29 +1,17 @@
 # Adaptive Workspace
 
-Adaptive Workspace provides hotkey-ready commands that coordinate Obsidian's sidebars, window zoom, and active Markdown view mode.
+Adaptive Workspace adds two commands that coordinate zoom, sidebars, and the active Markdown view.
 
 ## Commands
 
-- **Adaptive Workspace: Zoom-in workspace** zooms in once and applies the configured sidebar and Markdown view actions.
-- **Adaptive Workspace: Zoom-out workspace** zooms out once and applies the configured sidebar and Markdown view actions.
+- **Zoom-in workspace** zooms in and applies its configured actions.
+- **Zoom-out workspace** zooms out and applies its configured actions.
 
-Assign hotkeys under **Settings → Hotkeys** by searching for “Adaptive Workspace.” The sidebar and zoom actions still run when the active view is not a Markdown note.
-
-For each command, the left and right sidebars can independently be set to **Expand**, **Collapse**, or **No change** under **Settings → Adaptive Workspace**. Zoom in and zoom out always run with their corresponding commands.
-
-The active Markdown view can independently be set to **No change**, **Edit**, or **Reading** for each command.
-
-**Edit** uses the note's current Obsidian editing mode, either Live Preview or Source mode. Obsidian's editing-mode status control can switch between them.
-
-Adaptive Workspace adds a status-bar control that enables or disables sidebar changes without opening plugin settings. Its active state and tooltip update when the setting changes; zoom remains enabled for both workspace commands.
-
-Under **Settings → Adaptive Workspace**, the **Status bar** section can show or hide both Obsidian's editing-mode control and the Adaptive Workspace sidebar control.
+Configure sidebar and Markdown actions under **Settings → Adaptive Workspace**. **Edit** preserves the current Live Preview or Source mode; the explicit options switch modes. Assign keyboard shortcuts under **Settings → Hotkeys**. The status-bar control temporarily disables sidebar changes.
 
 ## Mouse bindings
 
-Each workspace command can be assigned a mouse binding under **Settings → Adaptive Workspace**. Select **Mouse binding**, then enter the binding anywhere in the Obsidian window. Hold Ctrl, Alt, Shift, Meta, or another mouse button while scrolling to record combinations such as **Ctrl + Wheel up** or **Mouse button 5 (Forward) + Wheel down**. Release held mouse buttons after scrolling to save the binding.
-
-Bindings match modifiers exactly. Unmatched scrolling and mouse clicks keep their normal behavior. A mouse button used as a chord modifier is reserved while the binding's keyboard modifiers match, preventing actions such as Back or Forward from firing during the chord. Plain primary and secondary mouse buttons are not accepted because they would block normal interaction; they can be recorded when combined with a keyboard modifier.
+Mouse bindings support keyboard and held mouse-button modifiers. To bind **MB5 + Wheel up**, hold MB5, scroll up, then release it. Bindings match modifiers exactly.
 
 ## Installation
 

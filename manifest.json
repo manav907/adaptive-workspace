@@ -3,7 +3,7 @@
 	"name": "Adaptive Workspace",
 	"version": "0.1.0",
 	"minAppVersion": "1.13.0",
-	"description": "Switch sidebars, zoom, and Markdown view modes with hotkey-ready commands.",
+	"description": "Control zoom, sidebars, and Markdown views.",
 	"author": "manav907",
 	"isDesktopOnly": false
 }

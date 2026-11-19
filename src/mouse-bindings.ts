@@ -177,7 +177,7 @@ export function mouseBindingsEqual(
 
 export function formatMouseBinding(binding: MouseBinding | null): string {
 	if (!binding) {
-		return 'Not assigned';
+		return 'None';
 	}
 
 	const parts: string[] = [];
@@ -202,12 +202,10 @@ export function formatMouseBinding(binding: MouseBinding | null): string {
 }
 
 function formatMouseButton(button: number): string {
-	if (button === 0) return 'Primary button';
-	if (button === 1) return 'Middle button';
-	if (button === 2) return 'Secondary button';
-	if (button === 3) return 'Mouse button 4 (Back)';
-	if (button === 4) return 'Mouse button 5 (Forward)';
-	return `Mouse button ${button + 1}`;
+	if (button === 0) return 'Left click';
+	if (button === 1) return 'Middle click';
+	if (button === 2) return 'Right click';
+	return `MB${button + 1}`;
 }
 
 function isMouseBindingCapture(event: Event): boolean {

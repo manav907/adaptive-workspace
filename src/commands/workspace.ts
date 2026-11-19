@@ -46,9 +46,16 @@ async function applyMarkdownMode(
 		return;
 	}
 
-	const state = action === 'reading'
-		? { mode: 'preview' }
-		: { mode: 'source' };
+	let state: Record<string, unknown>;
+	if (action === 'reading') {
+		state = { mode: 'preview' };
+	} else if (action === 'live-preview') {
+		state = { mode: 'source', source: false };
+	} else if (action === 'source') {
+		state = { mode: 'source', source: true };
+	} else {
+		state = { mode: 'source' };
+	}
 
 	await view.setState({ ...view.getState(), ...state }, { history: false });
 }
