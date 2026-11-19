@@ -58,17 +58,17 @@ const MARKDOWN_MODE_OPTIONS: Record<MarkdownModeAction, string> = {
 
 export const DEFAULT_SETTINGS: AdaptiveWorkspaceSettings = {
 	disableSidebarChanges: false,
-	enableMiddleMouseWheel: false,
+	enableMiddleMouseWheel: true,
 	invertMiddleMouseWheel: false,
 	showEditingModeHeaderControl: true,
 	showSidebarChangesHeaderControl: true,
 	showSidebarStatusItem: false,
 	expandCommandLeftSidebar: 'expand',
 	expandCommandRightSidebar: 'expand',
-	expandCommandMarkdownMode: 'unchanged',
+	expandCommandMarkdownMode: 'reading',
 	collapseCommandLeftSidebar: 'collapse',
 	collapseCommandRightSidebar: 'collapse',
-	collapseCommandMarkdownMode: 'unchanged',
+	collapseCommandMarkdownMode: 'edit',
 };
 
 function isSidebarAction(value: unknown): value is SidebarAction {
