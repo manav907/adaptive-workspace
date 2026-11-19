@@ -7,7 +7,7 @@ Adaptive Workspace adds two commands that coordinate zoom, sidebars, and the act
 - **Zoom-in workspace** zooms in and applies its configured actions.
 - **Zoom-out workspace** zooms out and applies its configured actions.
 
-Configure sidebar and Markdown actions under **Settings → Adaptive Workspace**. **Edit** preserves the current Live Preview or Source mode; the explicit options switch modes. Assign keyboard shortcuts under **Settings → Hotkeys**. The status-bar control temporarily disables sidebar changes.
+Configure sidebar and Markdown actions under **Settings → Adaptive Workspace**. **Edit** preserves the current Live Preview or Source mode; the explicit options switch modes. Assign keyboard shortcuts under **Settings → Hotkeys**. Optional Markdown-header and status-bar controls switch editing mode or temporarily disable sidebar changes.
 
 ## Mouse bindings
 

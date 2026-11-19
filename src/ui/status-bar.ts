@@ -1,6 +1,10 @@
 import { setIcon, setTooltip } from 'obsidian';
 import type { App } from 'obsidian';
 import type AdaptiveWorkspacePlugin from '../main';
+import {
+	getSidebarChangesPresentation,
+	HIDDEN_CONTROL_CLASS,
+} from './control-presentation';
 
 const EDITOR_STATUS_PLUGIN_ID = 'editor-status';
 
@@ -53,16 +57,19 @@ export function refreshSidebarStatusItem(
 		return;
 	}
 
-	const disabled = plugin.settings.disableSidebarChanges;
-	const label = disabled
-		? 'Enable sidebar changes'
-		: 'Disable sidebar changes';
-	statusItem.hidden = !plugin.settings.showSidebarStatusItem;
-	statusItem.classList.toggle('is-active', disabled);
-	statusItem.setAttribute('aria-pressed', String(disabled));
-	statusItem.setAttribute('aria-label', label);
-	setIcon(statusItem, disabled ? 'panel-left-close' : 'panels-top-left');
-	setTooltip(statusItem, label);
+	const presentation = getSidebarChangesPresentation(
+		plugin.settings.disableSidebarChanges,
+	);
+	statusItem.hidden = false;
+	statusItem.classList.toggle(
+		HIDDEN_CONTROL_CLASS,
+		!plugin.settings.showSidebarStatusItem,
+	);
+	statusItem.classList.toggle('is-active', presentation.active);
+	statusItem.setAttribute('aria-pressed', String(presentation.pressed));
+	statusItem.setAttribute('aria-label', presentation.label);
+	setIcon(statusItem, presentation.icon);
+	setTooltip(statusItem, presentation.label);
 }
 
 export function registerSidebarStatusItem(

@@ -2,6 +2,14 @@
 	color: var(--interactive-accent);
 }
 
+.view-action.plugin-adaptive-workspace-control.is-active {
+	color: var(--interactive-accent);
+}
+
+.plugin-adaptive-workspace-is-hidden {
+	display: none !important;
+}
+
 .adaptive-workspace-mouse-capture {
 	margin-block: var(--size-4-4);
 	padding: var(--size-4-8);

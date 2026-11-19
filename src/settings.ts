@@ -23,6 +23,8 @@ import {
 
 export interface AdaptiveWorkspaceSettings {
 	disableSidebarChanges: boolean;
+	showEditingModeHeaderControl: boolean;
+	showSidebarChangesHeaderControl: boolean;
 	showSidebarStatusItem: boolean;
 	expandCommandMouseBinding: MouseBinding | null;
 	expandCommandLeftSidebar: SidebarAction;
@@ -66,6 +68,8 @@ const MARKDOWN_MODE_OPTIONS: Record<MarkdownModeAction, string> = {
 
 export const DEFAULT_SETTINGS: AdaptiveWorkspaceSettings = {
 	disableSidebarChanges: false,
+	showEditingModeHeaderControl: true,
+	showSidebarChangesHeaderControl: true,
 	showSidebarStatusItem: true,
 	expandCommandMouseBinding: null,
 	expandCommandLeftSidebar: 'expand',
@@ -111,6 +115,18 @@ export function normalizeSettings(data: unknown): AdaptiveWorkspaceSettings {
 			saved.disableSidebarChanges,
 			DEFAULT_SETTINGS.disableSidebarChanges,
 		),
+		showEditingModeHeaderControl: getHeaderControlVisibility(
+			saved.showEditingModeHeaderControl,
+			saved.editingModeControlLocation,
+			saved.showSourceModeButton,
+			DEFAULT_SETTINGS.showEditingModeHeaderControl,
+		),
+		showSidebarChangesHeaderControl: getHeaderControlVisibility(
+			saved.showSidebarChangesHeaderControl,
+			saved.sidebarChangesControlLocation,
+			saved.showSidebarChangesButton,
+			DEFAULT_SETTINGS.showSidebarChangesHeaderControl,
+		),
 		showSidebarStatusItem: getBoolean(
 			saved.showSidebarStatusItem,
 			DEFAULT_SETTINGS.showSidebarStatusItem,
@@ -150,6 +166,24 @@ export function normalizeSettings(data: unknown): AdaptiveWorkspaceSettings {
 
 function getBoolean(value: unknown, defaultValue: boolean): boolean {
 	return typeof value === 'boolean' ? value : defaultValue;
+}
+
+function getHeaderControlVisibility(
+	value: unknown,
+	legacyLocation: unknown,
+	legacyVisible: unknown,
+	defaultValue: boolean,
+): boolean {
+	if (typeof value === 'boolean') {
+		return value;
+	}
+	if (legacyLocation === 'header' || legacyLocation === 'both') {
+		return true;
+	}
+	if (legacyLocation === 'hidden' || legacyLocation === 'status') {
+		return false;
+	}
+	return getBoolean(legacyVisible, defaultValue);
 }
 
 function getSidebarAction(
@@ -216,13 +250,12 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 			if (typeof value === 'boolean') {
 				await setEditorStatusEnabled(this.app, value);
 			}
+			this.plugin.refreshUi();
 			return;
 		}
 
 		await super.setControlValue(key, value);
-		if (key === 'showSidebarStatusItem') {
-			this.plugin.refreshStatusBarItem();
-		}
+		this.plugin.refreshUi();
 	}
 
 	getSettingDefinitions(): SettingDefinitionItem<SettingKey>[] {
@@ -245,6 +278,30 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 							type: 'toggle',
 							key: 'showSidebarStatusItem',
 							defaultValue: DEFAULT_SETTINGS.showSidebarStatusItem,
+						},
+					},
+				],
+			},
+			{
+				type: 'group',
+				heading: 'Markdown header',
+				items: [
+					{
+						name: 'Editing mode control',
+						control: {
+							type: 'toggle',
+							key: 'showEditingModeHeaderControl',
+							defaultValue:
+								DEFAULT_SETTINGS.showEditingModeHeaderControl,
+						},
+					},
+					{
+						name: 'Sidebar changes control',
+						control: {
+							type: 'toggle',
+							key: 'showSidebarChangesHeaderControl',
+							defaultValue:
+								DEFAULT_SETTINGS.showSidebarChangesHeaderControl,
 						},
 					},
 				],

@@ -7,7 +7,7 @@ import {
 import type { AdaptiveWorkspaceSettings } from './settings';
 import { registerMouseBindings } from './mouse-bindings';
 import {
-	refreshSidebarStatusItem,
+	refreshUi as refreshPluginUi,
 	registerUi,
 } from './ui';
 
@@ -24,11 +24,11 @@ export default class AdaptiveWorkspacePlugin extends Plugin {
 
 	async saveSettings(): Promise<void> {
 		await this.saveData(this.settings);
-		this.refreshStatusBarItem();
+		this.refreshUi();
 	}
 
-	refreshStatusBarItem(): void {
-		refreshSidebarStatusItem(this);
+	refreshUi(): void {
+		refreshPluginUi(this);
 	}
 
 	private async loadSettings(): Promise<void> {
