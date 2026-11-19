@@ -1,7 +1,6 @@
 import { PluginSettingTab } from 'obsidian';
 import type {
 	App,
-	SearchComponent,
 	SettingDefinition,
 	SettingDefinitionItem,
 } from 'obsidian';
@@ -194,26 +193,6 @@ function getMarkdownModeAction(
 	return defaultAction;
 }
 
-interface InternalSettingsManager {
-	activeTab?: {
-		searchComponent?: SearchComponent;
-	};
-	open(): void;
-	openTabById(tabId: string): void;
-}
-
-function openPluginHotkeys(app: App, pluginId: string): void {
-	const settings = (
-		app as App & { setting?: InternalSettingsManager }
-	).setting;
-
-	settings?.open();
-	settings?.openTabById('hotkeys');
-	settings?.activeTab?.searchComponent
-		?.setValue(pluginId)
-		.onChanged();
-}
-
 export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 	constructor(
 		app: App,
@@ -281,16 +260,7 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 				items: [
 					{
 						name: 'Hotkeys',
-						render: (setting) => {
-							setting.addButton((button) => button
-								.setButtonText('Configure')
-								.onClick(() => {
-									openPluginHotkeys(
-										this.app,
-										this.plugin.manifest.id,
-									);
-								}));
-						},
+						desc: 'Assign shortcuts under Settings → Hotkeys.',
 					},
 					{
 						name: 'Enable middle mouse + wheel',

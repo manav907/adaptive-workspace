@@ -2,51 +2,27 @@ import { setIcon, setTooltip } from 'obsidian';
 import type { App } from 'obsidian';
 import type AdaptiveWorkspacePlugin from '../main';
 import {
+	isInternalPluginEnabled,
+	setInternalPluginEnabled,
+} from '../obsidian-internals';
+import {
 	getSidebarChangesPresentation,
 	HIDDEN_CONTROL_CLASS,
 } from './control-presentation';
 
 const EDITOR_STATUS_PLUGIN_ID = 'editor-status';
 
-interface InternalPlugin {
-	enabled: boolean;
-	disable(): void | Promise<void>;
-	enable(): Promise<void>;
-}
-
-interface InternalPluginManager {
-	getPluginById(pluginId: string): InternalPlugin | null;
-}
-
-type AppWithInternalPlugins = App & {
-	internalPlugins?: InternalPluginManager;
-};
-
 const statusItems = new WeakMap<AdaptiveWorkspacePlugin, HTMLElement>();
 
-function getEditorStatusPlugin(app: App): InternalPlugin | null {
-	return (app as AppWithInternalPlugins).internalPlugins
-		?.getPluginById(EDITOR_STATUS_PLUGIN_ID) ?? null;
-}
-
 export function isEditorStatusEnabled(app: App): boolean {
-	return getEditorStatusPlugin(app)?.enabled ?? false;
+	return isInternalPluginEnabled(app, EDITOR_STATUS_PLUGIN_ID);
 }
 
 export async function setEditorStatusEnabled(
 	app: App,
 	enabled: boolean,
 ): Promise<void> {
-	const editorStatus = getEditorStatusPlugin(app);
-	if (!editorStatus || editorStatus.enabled === enabled) {
-		return;
-	}
-
-	if (enabled) {
-		await editorStatus.enable();
-	} else {
-		await editorStatus.disable();
-	}
+	await setInternalPluginEnabled(app, EDITOR_STATUS_PLUGIN_ID, enabled);
 }
 
 export function refreshSidebarStatusItem(

@@ -5,19 +5,7 @@ import type {
 	MarkdownModeAction,
 	SidebarAction,
 } from '../settings';
-
-interface InternalCommandRegistry {
-	executeCommandById(commandId: string): boolean;
-}
-
-type AppWithInternalCommands = App & {
-	commands?: InternalCommandRegistry;
-};
-
-function executeCommandById(app: App, commandId: string): void {
-	const { commands } = app as AppWithInternalCommands;
-	commands?.executeCommandById(commandId);
-}
+import { executeInternalCommand } from '../obsidian-internals';
 
 interface Sidebar {
 	collapse(): void;
@@ -74,7 +62,7 @@ export async function expandWorkspace(
 			settings.expandCommandRightSidebar,
 		);
 	}
-	executeCommandById(app, 'window:zoom-in');
+	executeInternalCommand(app, 'window:zoom-in');
 
 	await applyMarkdownMode(
 		app,
@@ -96,7 +84,7 @@ export async function collapseWorkspace(
 			settings.collapseCommandRightSidebar,
 		);
 	}
-	executeCommandById(app, 'window:zoom-out');
+	executeInternalCommand(app, 'window:zoom-out');
 
 	await applyMarkdownMode(
 		app,
