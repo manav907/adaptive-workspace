@@ -13,13 +13,17 @@ For each command, the left and right sidebars can independently be set to **Expa
 
 The active Markdown view can independently be set to **No change**, **Edit**, or **Reading** for each command.
 
-An editing-mode control chooses whether workspace commands configured as **Edit** use Source mode or Live Preview.
+**Edit** uses the note's current Obsidian editing mode, either Live Preview or Source mode. Obsidian's editing-mode status control can switch between them.
 
-A sidebar-changes control allows or prevents workspace commands from changing the sidebars without opening plugin settings.
+Adaptive Workspace adds a status-bar control that enables or disables sidebar changes without opening plugin settings. Its active state and tooltip update when the setting changes; zoom remains enabled for both workspace commands.
 
-Each control can be placed in the Markdown header, status bar, both locations, or hidden under **Settings → Adaptive Workspace → Control locations**.
+Under **Settings → Adaptive Workspace**, the **Status bar** section can show or hide both Obsidian's editing-mode control and the Adaptive Workspace sidebar control.
 
-The controls use matching state-specific icons in both locations. Status-bar controls also show short state labels. Zoom remains enabled for both workspace commands.
+## Mouse bindings
+
+Each workspace command can be assigned a mouse binding under **Settings → Adaptive Workspace**. Select **Mouse binding**, then enter the binding anywhere in the Obsidian window. Hold Ctrl, Alt, Shift, Meta, or another mouse button while scrolling to record combinations such as **Ctrl + Wheel up** or **Mouse button 5 (Forward) + Wheel down**. Release held mouse buttons after scrolling to save the binding.
+
+Bindings match modifiers exactly. Unmatched scrolling and mouse clicks keep their normal behavior. A mouse button used as a chord modifier is reserved while the binding's keyboard modifiers match, preventing actions such as Back or Forward from firing during the chord. Plain primary and secondary mouse buttons are not accepted because they would block normal interaction; they can be recorded when combined with a keyboard modifier.
 
 ## Installation
 

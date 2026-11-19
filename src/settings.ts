@@ -6,15 +6,29 @@ import type {
 	SettingDefinitionItem,
 } from 'obsidian';
 import type AdaptiveWorkspacePlugin from './main';
+import {
+	formatMouseBinding,
+	mouseBindingsEqual,
+	normalizeMouseBinding,
+} from './mouse-bindings';
+import type {
+	MouseBinding,
+	MouseBindingSettingKey,
+} from './mouse-bindings';
+import { MouseBindingModal } from './ui/mouse-binding-modal';
+import {
+	isEditorStatusEnabled,
+	setEditorStatusEnabled,
+} from './ui/status-bar';
 
 export interface AdaptiveWorkspaceSettings {
 	disableSidebarChanges: boolean;
-	useSourceMode: boolean;
-	editingModeControlLocation: ControlLocation;
-	sidebarChangesControlLocation: ControlLocation;
+	showSidebarStatusItem: boolean;
+	expandCommandMouseBinding: MouseBinding | null;
 	expandCommandLeftSidebar: SidebarAction;
 	expandCommandRightSidebar: SidebarAction;
 	expandCommandMarkdownMode: MarkdownModeAction;
+	collapseCommandMouseBinding: MouseBinding | null;
 	collapseCommandLeftSidebar: SidebarAction;
 	collapseCommandRightSidebar: SidebarAction;
 	collapseCommandMarkdownMode: MarkdownModeAction;
@@ -22,22 +36,6 @@ export interface AdaptiveWorkspaceSettings {
 
 export type SidebarAction = 'expand' | 'collapse' | 'unchanged';
 export type MarkdownModeAction = 'edit' | 'reading' | 'unchanged';
-export type ControlLocation = 'hidden' | 'header' | 'status' | 'both';
-
-function isControlLocation(value: unknown): value is ControlLocation {
-	return value === 'hidden'
-		|| value === 'header'
-		|| value === 'status'
-		|| value === 'both';
-}
-
-export function isControlInHeader(location: ControlLocation): boolean {
-	return location === 'header' || location === 'both';
-}
-
-export function isControlInStatusBar(location: ControlLocation): boolean {
-	return location === 'status' || location === 'both';
-}
 
 type SidebarSettingKey =
 	| 'expandCommandLeftSidebar'
@@ -45,7 +43,7 @@ type SidebarSettingKey =
 	| 'collapseCommandLeftSidebar'
 	| 'collapseCommandRightSidebar';
 
-type SettingKey = keyof AdaptiveWorkspaceSettings;
+type SettingKey = keyof AdaptiveWorkspaceSettings | 'showEditorStatus';
 
 const SIDEBAR_OPTIONS: Record<SidebarAction, string> = {
 	expand: 'Expand',
@@ -59,21 +57,14 @@ const MARKDOWN_MODE_OPTIONS: Record<MarkdownModeAction, string> = {
 	reading: 'Reading',
 };
 
-const CONTROL_LOCATION_OPTIONS: Record<ControlLocation, string> = {
-	hidden: 'Hidden',
-	header: 'Markdown header',
-	status: 'Status bar',
-	both: 'Both',
-};
-
 export const DEFAULT_SETTINGS: AdaptiveWorkspaceSettings = {
 	disableSidebarChanges: false,
-	useSourceMode: false,
-	editingModeControlLocation: 'header',
-	sidebarChangesControlLocation: 'header',
+	showSidebarStatusItem: true,
+	expandCommandMouseBinding: null,
 	expandCommandLeftSidebar: 'expand',
 	expandCommandRightSidebar: 'expand',
 	expandCommandMarkdownMode: 'unchanged',
+	collapseCommandMouseBinding: null,
 	collapseCommandLeftSidebar: 'collapse',
 	collapseCommandRightSidebar: 'collapse',
 	collapseCommandMarkdownMode: 'unchanged',
@@ -93,25 +84,29 @@ export function normalizeSettings(data: unknown): AdaptiveWorkspaceSettings {
 	const saved = data && typeof data === 'object'
 		? data as Record<string, unknown>
 		: {};
+	const expandCommandMouseBinding = normalizeMouseBinding(
+		saved.expandCommandMouseBinding,
+	);
+	let collapseCommandMouseBinding = normalizeMouseBinding(
+		saved.collapseCommandMouseBinding,
+	);
+	if (mouseBindingsEqual(
+		expandCommandMouseBinding,
+		collapseCommandMouseBinding,
+	)) {
+		collapseCommandMouseBinding = null;
+	}
 
 	return {
 		disableSidebarChanges: getBoolean(
 			saved.disableSidebarChanges,
 			DEFAULT_SETTINGS.disableSidebarChanges,
 		),
-		useSourceMode: getUseSourceMode(saved),
-		editingModeControlLocation: getControlLocation(
-			saved.editingModeControlLocation,
-			saved.showSourceModeButton,
-			saved.showEditorStatus,
-			DEFAULT_SETTINGS.editingModeControlLocation,
-		),
-		sidebarChangesControlLocation: getControlLocation(
-			saved.sidebarChangesControlLocation,
-			saved.showSidebarChangesButton,
+		showSidebarStatusItem: getBoolean(
 			saved.showSidebarStatusItem,
-			DEFAULT_SETTINGS.sidebarChangesControlLocation,
+			DEFAULT_SETTINGS.showSidebarStatusItem,
 		),
+		expandCommandMouseBinding,
 		expandCommandLeftSidebar: getSidebarAction(
 			saved.expandCommandLeftSidebar,
 			saved.expandLeftSidebar,
@@ -126,6 +121,7 @@ export function normalizeSettings(data: unknown): AdaptiveWorkspaceSettings {
 			saved.expandCommandMarkdownMode,
 			DEFAULT_SETTINGS.expandCommandMarkdownMode,
 		),
+		collapseCommandMouseBinding,
 		collapseCommandLeftSidebar: getSidebarAction(
 			saved.collapseCommandLeftSidebar,
 			saved.collapseLeftSidebar,
@@ -143,52 +139,8 @@ export function normalizeSettings(data: unknown): AdaptiveWorkspaceSettings {
 	};
 }
 
-function getUseSourceMode(saved: Record<string, unknown>): boolean {
-	const savedModes = [
-		saved.expandCommandMarkdownMode,
-		saved.collapseCommandMarkdownMode,
-	];
-	if (savedModes.includes('source')) {
-		return true;
-	}
-	if (savedModes.includes('live-preview')) {
-		return false;
-	}
-	return getBoolean(saved.useSourceMode, DEFAULT_SETTINGS.useSourceMode);
-}
-
 function getBoolean(value: unknown, defaultValue: boolean): boolean {
 	return typeof value === 'boolean' ? value : defaultValue;
-}
-
-function getControlLocation(
-	value: unknown,
-	legacyHeader: unknown,
-	legacyStatus: unknown,
-	defaultLocation: ControlLocation,
-): ControlLocation {
-	if (isControlLocation(value)) {
-		return value;
-	}
-
-	const showHeader = getBoolean(
-		legacyHeader,
-		isControlInHeader(defaultLocation),
-	);
-	const showStatus = getBoolean(
-		legacyStatus,
-		isControlInStatusBar(defaultLocation),
-	);
-	if (showHeader && showStatus) {
-		return 'both';
-	}
-	if (showHeader) {
-		return 'header';
-	}
-	if (showStatus) {
-		return 'status';
-	}
-	return 'hidden';
 }
 
 function getSidebarAction(
@@ -246,42 +198,49 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 		super(app, plugin);
 	}
 
+	getControlValue(key: string): unknown {
+		if (key === 'showEditorStatus') {
+			return isEditorStatusEnabled(this.app);
+		}
+		return super.getControlValue(key);
+	}
+
 	async setControlValue(key: string, value: unknown): Promise<void> {
-		if ((key === 'editingModeControlLocation'
-			|| key === 'sidebarChangesControlLocation')
-			&& isControlLocation(value)) {
-			this.plugin.settings[key] = value;
-			await this.plugin.saveSettings();
+		if (key === 'showEditorStatus') {
+			if (typeof value === 'boolean') {
+				await setEditorStatusEnabled(this.app, value);
+			}
 			return;
 		}
 
 		await super.setControlValue(key, value);
+		if (key === 'showSidebarStatusItem') {
+			this.plugin.refreshStatusBarItem();
+		}
 	}
 
 	getSettingDefinitions(): SettingDefinitionItem<SettingKey>[] {
 		return [
 			{
 				type: 'group',
-				heading: 'Control locations',
+				heading: 'Status bar',
 				items: [
 					{
-						name: 'Editing mode control',
-						desc: 'Choose where to show the control for the editing mode used by workspace commands.',
+						name: 'Show editing mode control',
+						desc: "Show Obsidian's editing-mode control in the status bar.",
 						control: {
-							type: 'dropdown',
-							key: 'editingModeControlLocation',
-							defaultValue: DEFAULT_SETTINGS.editingModeControlLocation,
-							options: CONTROL_LOCATION_OPTIONS,
+							type: 'toggle',
+							key: 'showEditorStatus',
+							defaultValue: true,
 						},
 					},
 					{
-						name: 'Sidebar changes control',
-						desc: 'Choose where to show the control that allows workspace commands to change sidebars.',
+						name: 'Show sidebar changes control',
+						desc: 'Show the sidebar-change control in the status bar.',
 						control: {
-							type: 'dropdown',
-							key: 'sidebarChangesControlLocation',
-							defaultValue: DEFAULT_SETTINGS.sidebarChangesControlLocation,
-							options: CONTROL_LOCATION_OPTIONS,
+							type: 'toggle',
+							key: 'showSidebarStatusItem',
+							defaultValue: DEFAULT_SETTINGS.showSidebarStatusItem,
 						},
 					},
 				],
@@ -290,6 +249,9 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 				type: 'group',
 				heading: 'Zoom-in workspace command',
 				items: [
+					this.createMouseBindingSetting(
+						'expandCommandMouseBinding',
+					),
 					this.createSidebarSetting(
 						'Left sidebar',
 						'expandCommandLeftSidebar',
@@ -305,6 +267,9 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 				type: 'group',
 				heading: 'Zoom-out workspace command',
 				items: [
+					this.createMouseBindingSetting(
+						'collapseCommandMouseBinding',
+					),
 					this.createSidebarSetting(
 						'Left sidebar',
 						'collapseCommandLeftSidebar',
@@ -330,6 +295,52 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 				],
 			},
 		];
+	}
+
+	private createMouseBindingSetting(
+		key: MouseBindingSettingKey,
+	): SettingDefinition<SettingKey> {
+		return {
+			name: 'Mouse binding',
+			desc: 'Assign a wheel direction or mouse button with optional keyboard and held-mouse-button modifiers.',
+			render: (setting) => {
+				const binding = this.plugin.settings[key];
+				setting.addButton((button) => button
+					.setButtonText(formatMouseBinding(binding))
+					.setTooltip('Record mouse binding')
+					.onClick(() => {
+						new MouseBindingModal(this.app, (newBinding) => {
+							void this.setMouseBinding(key, newBinding);
+						}).open();
+					}));
+
+				if (binding) {
+					setting.addExtraButton((button) => button
+						.setIcon('x')
+						.setTooltip('Clear mouse binding')
+						.onClick(() => {
+							void this.setMouseBinding(key, null);
+						}));
+				}
+			},
+		};
+	}
+
+	private async setMouseBinding(
+		key: MouseBindingSettingKey,
+		binding: MouseBinding | null,
+	): Promise<void> {
+		const otherKey: MouseBindingSettingKey =
+			key === 'expandCommandMouseBinding'
+				? 'collapseCommandMouseBinding'
+				: 'expandCommandMouseBinding';
+
+		if (mouseBindingsEqual(binding, this.plugin.settings[otherKey])) {
+			this.plugin.settings[otherKey] = null;
+		}
+		this.plugin.settings[key] = binding;
+		await this.plugin.saveSettings();
+		this.update();
 	}
 
 	private createSidebarSetting(

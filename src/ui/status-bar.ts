@@ -1,102 +1,96 @@
 import { setIcon, setTooltip } from 'obsidian';
+import type { App } from 'obsidian';
 import type AdaptiveWorkspacePlugin from '../main';
-import { isControlInStatusBar } from '../settings';
-import {
-	getEditingModePresentation,
-	getSidebarChangesPresentation,
-} from './control-presentation';
-import type { ControlPresentation } from './control-presentation';
 
-interface StatusBarControls {
-	editingMode: HTMLElement;
-	sidebarChanges: HTMLElement;
+const EDITOR_STATUS_PLUGIN_ID = 'editor-status';
+
+interface InternalPlugin {
+	enabled: boolean;
+	disable(): void | Promise<void>;
+	enable(): Promise<void>;
 }
 
-const controls = new WeakMap<AdaptiveWorkspacePlugin, StatusBarControls>();
-
-function updateControl(
-	element: HTMLElement,
-	presentation: ControlPresentation,
-): void {
-	element.classList.toggle('is-active', presentation.active);
-	element.setAttribute('aria-pressed', String(presentation.pressed));
-	element.setAttribute('aria-label', presentation.label);
-	setIcon(element, presentation.icon);
-	const statusText = document.createElement('span');
-	statusText.classList.add('plugin-adaptive-workspace-status-label');
-	statusText.textContent = presentation.statusText;
-	element.appendChild(statusText);
-	setTooltip(element, presentation.label);
+interface InternalPluginManager {
+	getPluginById(pluginId: string): InternalPlugin | null;
 }
 
-export function refreshStatusBarControls(
-	plugin: AdaptiveWorkspacePlugin,
-): void {
-	const statusBarControls = controls.get(plugin);
-	if (!statusBarControls) {
+type AppWithInternalPlugins = App & {
+	internalPlugins?: InternalPluginManager;
+};
+
+const statusItems = new WeakMap<AdaptiveWorkspacePlugin, HTMLElement>();
+
+function getEditorStatusPlugin(app: App): InternalPlugin | null {
+	return (app as AppWithInternalPlugins).internalPlugins
+		?.getPluginById(EDITOR_STATUS_PLUGIN_ID) ?? null;
+}
+
+export function isEditorStatusEnabled(app: App): boolean {
+	return getEditorStatusPlugin(app)?.enabled ?? false;
+}
+
+export async function setEditorStatusEnabled(
+	app: App,
+	enabled: boolean,
+): Promise<void> {
+	const editorStatus = getEditorStatusPlugin(app);
+	if (!editorStatus || editorStatus.enabled === enabled) {
 		return;
 	}
 
-	statusBarControls.editingMode.classList.toggle(
-		'plugin-adaptive-workspace-is-hidden',
-		!isControlInStatusBar(
-			plugin.settings.editingModeControlLocation,
-		),
-	);
-	statusBarControls.sidebarChanges.classList.toggle(
-		'plugin-adaptive-workspace-is-hidden',
-		!isControlInStatusBar(
-			plugin.settings.sidebarChangesControlLocation,
-		),
-	);
-
-	updateControl(
-		statusBarControls.editingMode,
-		getEditingModePresentation(plugin.settings),
-	);
-	updateControl(
-		statusBarControls.sidebarChanges,
-		getSidebarChangesPresentation(plugin.settings),
-	);
+	if (enabled) {
+		await editorStatus.enable();
+	} else {
+		await editorStatus.disable();
+	}
 }
 
-function registerStatusButton(
+export function refreshSidebarStatusItem(
 	plugin: AdaptiveWorkspacePlugin,
-	element: HTMLElement,
-	onActivate: () => Promise<void>,
 ): void {
-	element.classList.add('plugin-adaptive-workspace-control', 'mod-clickable');
-	element.setAttribute('role', 'button');
-	element.tabIndex = 0;
-	plugin.registerDomEvent(element, 'click', onActivate);
-	plugin.registerDomEvent(element, 'keydown', (event) => {
+	const statusItem = statusItems.get(plugin);
+	if (!statusItem) {
+		return;
+	}
+
+	const disabled = plugin.settings.disableSidebarChanges;
+	const label = disabled
+		? 'Enable sidebar changes'
+		: 'Disable sidebar changes';
+	statusItem.hidden = !plugin.settings.showSidebarStatusItem;
+	statusItem.classList.toggle('is-active', disabled);
+	statusItem.setAttribute('aria-pressed', String(disabled));
+	statusItem.setAttribute('aria-label', label);
+	setIcon(statusItem, disabled ? 'panel-left-close' : 'panels-top-left');
+	setTooltip(statusItem, label);
+}
+
+export function registerSidebarStatusItem(
+	plugin: AdaptiveWorkspacePlugin,
+): void {
+	const statusItem = plugin.addStatusBarItem();
+	statusItem.classList.add(
+		'plugin-adaptive-workspace-sidebar',
+		'mod-clickable',
+	);
+	statusItem.setAttribute('role', 'button');
+	statusItem.tabIndex = 0;
+	statusItems.set(plugin, statusItem);
+
+	const toggleSidebarChanges = async (): Promise<void> => {
+		plugin.settings.disableSidebarChanges =
+			!plugin.settings.disableSidebarChanges;
+		await plugin.saveSettings();
+	};
+
+	plugin.registerDomEvent(statusItem, 'click', toggleSidebarChanges);
+	plugin.registerDomEvent(statusItem, 'keydown', (event) => {
 		if (event.key !== 'Enter' && event.key !== ' ') {
 			return;
 		}
 		event.preventDefault();
-		void onActivate();
+		void toggleSidebarChanges();
 	});
-}
-
-export function registerStatusBarControls(
-	plugin: AdaptiveWorkspacePlugin,
-): void {
-	const editingMode = plugin.addStatusBarItem();
-	editingMode.classList.add('plugin-adaptive-workspace-editing-mode');
-	registerStatusButton(plugin, editingMode, async () => {
-		plugin.settings.useSourceMode = !plugin.settings.useSourceMode;
-		await plugin.saveSettings();
-	});
-
-	const sidebarChanges = plugin.addStatusBarItem();
-	sidebarChanges.classList.add('plugin-adaptive-workspace-sidebar-changes');
-	registerStatusButton(plugin, sidebarChanges, async () => {
-		plugin.settings.disableSidebarChanges =
-			!plugin.settings.disableSidebarChanges;
-		await plugin.saveSettings();
-	});
-
-	controls.set(plugin, { editingMode, sidebarChanges });
-	plugin.register(() => controls.delete(plugin));
-	refreshStatusBarControls(plugin);
+	plugin.register(() => statusItems.delete(plugin));
+	refreshSidebarStatusItem(plugin);
 }

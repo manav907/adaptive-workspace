@@ -35,7 +35,6 @@ function applySidebarAction(sidebar: Sidebar, action: SidebarAction): void {
 async function applyMarkdownMode(
 	app: App,
 	action: MarkdownModeAction,
-	useSourceMode: boolean,
 ): Promise<void> {
 	if (action === 'unchanged') {
 		return;
@@ -49,7 +48,7 @@ async function applyMarkdownMode(
 
 	const state = action === 'reading'
 		? { mode: 'preview' }
-		: { mode: 'source', source: useSourceMode };
+		: { mode: 'source' };
 
 	await view.setState({ ...view.getState(), ...state }, { history: false });
 }
@@ -73,7 +72,6 @@ export async function expandWorkspace(
 	await applyMarkdownMode(
 		app,
 		settings.expandCommandMarkdownMode,
-		settings.useSourceMode,
 	);
 }
 
@@ -96,6 +94,5 @@ export async function collapseWorkspace(
 	await applyMarkdownMode(
 		app,
 		settings.collapseCommandMarkdownMode,
-		settings.useSourceMode,
 	);
 }

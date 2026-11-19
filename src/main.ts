@@ -5,9 +5,10 @@ import {
 	normalizeSettings,
 } from './settings';
 import type { AdaptiveWorkspaceSettings } from './settings';
+import { registerMouseBindings } from './mouse-bindings';
 import {
-	refreshControls,
-	registerControls,
+	refreshSidebarStatusItem,
+	registerUi,
 } from './ui';
 
 export default class AdaptiveWorkspacePlugin extends Plugin {
@@ -15,18 +16,19 @@ export default class AdaptiveWorkspacePlugin extends Plugin {
 
 	async onload(): Promise<void> {
 		await this.loadSettings();
-		registerControls(this);
+		registerUi(this);
 		registerCommands(this);
+		registerMouseBindings(this);
 		this.addSettingTab(new AdaptiveWorkspaceSettingTab(this.app, this));
 	}
 
 	async saveSettings(): Promise<void> {
 		await this.saveData(this.settings);
-		this.refreshControls();
+		this.refreshStatusBarItem();
 	}
 
-	refreshControls(): void {
-		refreshControls(this);
+	refreshStatusBarItem(): void {
+		refreshSidebarStatusItem(this);
 	}
 
 	private async loadSettings(): Promise<void> {
