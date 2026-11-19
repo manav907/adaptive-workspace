@@ -9,9 +9,11 @@ Adaptive Workspace adds two commands that coordinate zoom, sidebars, and the act
 
 Configure sidebar and Markdown actions under **Settings → Adaptive Workspace**. **Edit** preserves the current Live Preview or Source mode; the explicit options switch modes. Assign keyboard shortcuts under **Settings → Hotkeys**. Optional Markdown-header and status-bar controls switch editing mode or temporarily disable sidebar changes.
 
+The default hotkeys are **Mod+=** and **Mod+-**.
+
 ## Mouse bindings
 
-Mouse bindings support keyboard and held mouse-button modifiers. To bind **MB5 + Wheel up**, hold MB5, scroll up, then release it. Bindings match modifiers exactly.
+The defaults are **MB5 + Wheel up** and **MB5 + Wheel down**. Mouse bindings support keyboard and held mouse-button modifiers. Bindings match modifiers exactly.
 
 ## Installation
 

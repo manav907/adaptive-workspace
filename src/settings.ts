@@ -70,12 +70,26 @@ export const DEFAULT_SETTINGS: AdaptiveWorkspaceSettings = {
 	disableSidebarChanges: false,
 	showEditingModeHeaderControl: true,
 	showSidebarChangesHeaderControl: true,
-	showSidebarStatusItem: true,
-	expandCommandMouseBinding: null,
+	showSidebarStatusItem: false,
+	expandCommandMouseBinding: {
+		input: 'wheel-up',
+		heldButtons: [4],
+		ctrl: false,
+		alt: false,
+		shift: false,
+		meta: false,
+	},
 	expandCommandLeftSidebar: 'expand',
 	expandCommandRightSidebar: 'expand',
 	expandCommandMarkdownMode: 'unchanged',
-	collapseCommandMouseBinding: null,
+	collapseCommandMouseBinding: {
+		input: 'wheel-down',
+		heldButtons: [4],
+		ctrl: false,
+		alt: false,
+		shift: false,
+		meta: false,
+	},
 	collapseCommandLeftSidebar: 'collapse',
 	collapseCommandRightSidebar: 'collapse',
 	collapseCommandMarkdownMode: 'unchanged',
@@ -97,11 +111,15 @@ export function normalizeSettings(data: unknown): AdaptiveWorkspaceSettings {
 	const saved = data && typeof data === 'object'
 		? data as Record<string, unknown>
 		: {};
-	const expandCommandMouseBinding = normalizeMouseBinding(
-		saved.expandCommandMouseBinding,
+	const expandCommandMouseBinding = getMouseBinding(
+		saved,
+		'expandCommandMouseBinding',
+		DEFAULT_SETTINGS.expandCommandMouseBinding,
 	);
-	let collapseCommandMouseBinding = normalizeMouseBinding(
-		saved.collapseCommandMouseBinding,
+	let collapseCommandMouseBinding = getMouseBinding(
+		saved,
+		'collapseCommandMouseBinding',
+		DEFAULT_SETTINGS.collapseCommandMouseBinding,
 	);
 	if (mouseBindingsEqual(
 		expandCommandMouseBinding,
@@ -166,6 +184,23 @@ export function normalizeSettings(data: unknown): AdaptiveWorkspaceSettings {
 
 function getBoolean(value: unknown, defaultValue: boolean): boolean {
 	return typeof value === 'boolean' ? value : defaultValue;
+}
+
+function getMouseBinding(
+	saved: Record<string, unknown>,
+	key: MouseBindingSettingKey,
+	defaultValue: MouseBinding | null,
+): MouseBinding | null {
+	if (Object.prototype.hasOwnProperty.call(saved, key)) {
+		return normalizeMouseBinding(saved[key]);
+	}
+	if (!defaultValue) {
+		return null;
+	}
+	return {
+		...defaultValue,
+		heldButtons: [...defaultValue.heldButtons],
+	};
 }
 
 function getHeaderControlVisibility(
@@ -269,7 +304,7 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 						control: {
 							type: 'toggle',
 							key: 'showEditorStatus',
-							defaultValue: true,
+							defaultValue: false,
 						},
 					},
 					{
