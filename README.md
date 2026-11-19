@@ -9,8 +9,6 @@ Adaptive Workspace adds two commands that coordinate zoom, sidebars, and the act
 
 Configure sidebar and Markdown actions under **Settings → Adaptive Workspace**. **Edit** preserves the current Live Preview or Source mode; the explicit options switch modes. Assign keyboard shortcuts under **Settings → Hotkeys**. Optional Markdown-header and status-bar controls switch editing mode or temporarily disable sidebar changes.
 
-The default hotkeys are **Mod+=** and **Mod+-**.
-
 ## Mouse wheel
 
 Middle-mouse wheel control is enabled by default. Hold the middle mouse button and scroll to run the workspace commands. While enabled, the plugin captures middle-button clicks, so middle-click autoscroll is unavailable. The control can be disabled or its direction inverted in the plugin settings.
