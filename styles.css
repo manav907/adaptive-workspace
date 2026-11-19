@@ -1,8 +1,8 @@
-/*
+.plugin-adaptive-workspace-control.is-active,
+.status-bar-item.plugin-adaptive-workspace-control.is-active:hover {
+	color: var(--interactive-accent);
+}
 
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
-
-If your plugin does not need CSS, delete this file.
-
-*/
+.plugin-adaptive-workspace-control.plugin-adaptive-workspace-is-hidden {
+	display: none !important;
+}

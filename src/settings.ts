@@ -10,6 +10,8 @@ import type AdaptiveWorkspacePlugin from './main';
 export interface AdaptiveWorkspaceSettings {
 	disableSidebarChanges: boolean;
 	useSourceMode: boolean;
+	editingModeControlLocation: ControlLocation;
+	sidebarChangesControlLocation: ControlLocation;
 	expandCommandLeftSidebar: SidebarAction;
 	expandCommandRightSidebar: SidebarAction;
 	expandCommandMarkdownMode: MarkdownModeAction;
@@ -20,6 +22,22 @@ export interface AdaptiveWorkspaceSettings {
 
 export type SidebarAction = 'expand' | 'collapse' | 'unchanged';
 export type MarkdownModeAction = 'edit' | 'reading' | 'unchanged';
+export type ControlLocation = 'hidden' | 'header' | 'status' | 'both';
+
+function isControlLocation(value: unknown): value is ControlLocation {
+	return value === 'hidden'
+		|| value === 'header'
+		|| value === 'status'
+		|| value === 'both';
+}
+
+export function isControlInHeader(location: ControlLocation): boolean {
+	return location === 'header' || location === 'both';
+}
+
+export function isControlInStatusBar(location: ControlLocation): boolean {
+	return location === 'status' || location === 'both';
+}
 
 type SidebarSettingKey =
 	| 'expandCommandLeftSidebar'
@@ -41,9 +59,18 @@ const MARKDOWN_MODE_OPTIONS: Record<MarkdownModeAction, string> = {
 	reading: 'Reading',
 };
 
+const CONTROL_LOCATION_OPTIONS: Record<ControlLocation, string> = {
+	hidden: 'Hidden',
+	header: 'Markdown header',
+	status: 'Status bar',
+	both: 'Both',
+};
+
 export const DEFAULT_SETTINGS: AdaptiveWorkspaceSettings = {
 	disableSidebarChanges: false,
 	useSourceMode: false,
+	editingModeControlLocation: 'header',
+	sidebarChangesControlLocation: 'header',
 	expandCommandLeftSidebar: 'expand',
 	expandCommandRightSidebar: 'expand',
 	expandCommandMarkdownMode: 'unchanged',
@@ -73,6 +100,18 @@ export function normalizeSettings(data: unknown): AdaptiveWorkspaceSettings {
 			DEFAULT_SETTINGS.disableSidebarChanges,
 		),
 		useSourceMode: getUseSourceMode(saved),
+		editingModeControlLocation: getControlLocation(
+			saved.editingModeControlLocation,
+			saved.showSourceModeButton,
+			saved.showEditorStatus,
+			DEFAULT_SETTINGS.editingModeControlLocation,
+		),
+		sidebarChangesControlLocation: getControlLocation(
+			saved.sidebarChangesControlLocation,
+			saved.showSidebarChangesButton,
+			saved.showSidebarStatusItem,
+			DEFAULT_SETTINGS.sidebarChangesControlLocation,
+		),
 		expandCommandLeftSidebar: getSidebarAction(
 			saved.expandCommandLeftSidebar,
 			saved.expandLeftSidebar,
@@ -120,6 +159,36 @@ function getUseSourceMode(saved: Record<string, unknown>): boolean {
 
 function getBoolean(value: unknown, defaultValue: boolean): boolean {
 	return typeof value === 'boolean' ? value : defaultValue;
+}
+
+function getControlLocation(
+	value: unknown,
+	legacyHeader: unknown,
+	legacyStatus: unknown,
+	defaultLocation: ControlLocation,
+): ControlLocation {
+	if (isControlLocation(value)) {
+		return value;
+	}
+
+	const showHeader = getBoolean(
+		legacyHeader,
+		isControlInHeader(defaultLocation),
+	);
+	const showStatus = getBoolean(
+		legacyStatus,
+		isControlInStatusBar(defaultLocation),
+	);
+	if (showHeader && showStatus) {
+		return 'both';
+	}
+	if (showHeader) {
+		return 'header';
+	}
+	if (showStatus) {
+		return 'status';
+	}
+	return 'hidden';
 }
 
 function getSidebarAction(
@@ -177,8 +246,46 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 		super(app, plugin);
 	}
 
+	async setControlValue(key: string, value: unknown): Promise<void> {
+		if ((key === 'editingModeControlLocation'
+			|| key === 'sidebarChangesControlLocation')
+			&& isControlLocation(value)) {
+			this.plugin.settings[key] = value;
+			await this.plugin.saveSettings();
+			return;
+		}
+
+		await super.setControlValue(key, value);
+	}
+
 	getSettingDefinitions(): SettingDefinitionItem<SettingKey>[] {
 		return [
+			{
+				type: 'group',
+				heading: 'Control locations',
+				items: [
+					{
+						name: 'Editing mode control',
+						desc: 'Choose where to show the Source mode and Live Preview control.',
+						control: {
+							type: 'dropdown',
+							key: 'editingModeControlLocation',
+							defaultValue: DEFAULT_SETTINGS.editingModeControlLocation,
+							options: CONTROL_LOCATION_OPTIONS,
+						},
+					},
+					{
+						name: 'Sidebar changes control',
+						desc: 'Choose where to show the sidebar changes control.',
+						control: {
+							type: 'dropdown',
+							key: 'sidebarChangesControlLocation',
+							defaultValue: DEFAULT_SETTINGS.sidebarChangesControlLocation,
+							options: CONTROL_LOCATION_OPTIONS,
+						},
+					},
+				],
+			},
 			{
 				type: 'group',
 				heading: 'Zoom-in workspace command',

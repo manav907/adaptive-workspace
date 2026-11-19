@@ -1,5 +1,6 @@
 import { MarkdownView } from 'obsidian';
 import type AdaptiveWorkspacePlugin from '../main';
+import { isControlInHeader } from '../settings';
 
 interface ViewActions {
 	sourceMode: HTMLElement;
@@ -36,6 +37,9 @@ export function registerMarkdownSourceToggle(
 					await plugin.saveSettings();
 				},
 			);
+			sourceModeAction.classList.add(
+				'plugin-adaptive-workspace-control',
+			);
 			const sidebarAction = view.addAction(
 				'panel-left',
 				'Disable sidebar changes',
@@ -44,6 +48,9 @@ export function registerMarkdownSourceToggle(
 						!plugin.settings.disableSidebarChanges;
 					await plugin.saveSettings();
 				},
+			);
+			sidebarAction.classList.add(
+				'plugin-adaptive-workspace-control',
 			);
 
 			viewActions.set(view, {
@@ -71,6 +78,19 @@ export function registerMarkdownSourceToggle(
 				viewActions.delete(view);
 				continue;
 			}
+
+			actions.sourceMode.classList.toggle(
+				'plugin-adaptive-workspace-is-hidden',
+				!isControlInHeader(
+					plugin.settings.editingModeControlLocation,
+				),
+			);
+			actions.sidebars.classList.toggle(
+				'plugin-adaptive-workspace-is-hidden',
+				!isControlInHeader(
+					plugin.settings.sidebarChangesControlLocation,
+				),
+			);
 
 			updateAction(
 				actions.sourceMode,

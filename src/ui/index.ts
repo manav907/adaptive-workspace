@@ -3,10 +3,18 @@ import {
 	refreshMarkdownViewActions,
 	registerMarkdownSourceToggle,
 } from './markdown-source-toggle';
+import {
+	refreshStatusBarControls,
+	registerStatusBarControls,
+} from './status-bar';
 
-export { refreshMarkdownViewActions };
+export function refreshControls(plugin: AdaptiveWorkspacePlugin): void {
+	refreshMarkdownViewActions(plugin);
+	refreshStatusBarControls(plugin);
+}
 
-export function registerViewActions(plugin: AdaptiveWorkspacePlugin): void {
+export function registerControls(plugin: AdaptiveWorkspacePlugin): void {
 	plugin.app.workspace.detachLeavesOfType('adaptive-workspace-hello-world');
 	registerMarkdownSourceToggle(plugin);
+	registerStatusBarControls(plugin);
 }

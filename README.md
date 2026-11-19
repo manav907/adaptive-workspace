@@ -13,11 +13,13 @@ For each command, the left and right sidebars can independently be set to **Expa
 
 The active Markdown view can independently be set to **No change**, **Edit**, or **Reading** for each command.
 
-Markdown view headers include an action that chooses whether **Edit** uses Source mode or Live Preview.
+An editing-mode control chooses whether **Edit** uses Source mode or Live Preview.
 
-A second Markdown view-header action enables or disables sidebar changes without opening plugin settings.
+A sidebar-changes control enables or disables sidebar changes without opening plugin settings.
 
-The two header actions show their active state and update their tooltips when their state changes. Zoom remains enabled for both workspace commands.
+Each control can be placed in the Markdown header, status bar, both locations, or hidden under **Settings → Adaptive Workspace → Control locations**.
+
+The controls show their active state and update their tooltips when their state changes. Zoom remains enabled for both workspace commands.
 
 ## Installation
 
