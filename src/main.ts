@@ -5,7 +5,7 @@ import {
 	normalizeSettings,
 } from './settings';
 import type { AdaptiveWorkspaceSettings } from './settings';
-import { registerMouseBindings } from './mouse-bindings';
+import { registerMiddleMouseWheel } from './middle-mouse-wheel';
 import {
 	refreshUi as refreshPluginUi,
 	registerUi,
@@ -18,7 +18,7 @@ export default class AdaptiveWorkspacePlugin extends Plugin {
 		await this.loadSettings();
 		registerUi(this);
 		registerCommands(this);
-		registerMouseBindings(this);
+		registerMiddleMouseWheel(this);
 		this.addSettingTab(new AdaptiveWorkspaceSettingTab(this.app, this));
 	}
 

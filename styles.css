@@ -9,28 +9,3 @@
 .plugin-adaptive-workspace-is-hidden {
 	display: none !important;
 }
-
-.adaptive-workspace-mouse-capture {
-	margin-block: var(--size-4-4);
-	padding: var(--size-4-8);
-	border: 1px solid var(--background-modifier-border);
-	border-radius: var(--radius-m);
-	background: var(--background-secondary);
-	text-align: center;
-}
-
-.adaptive-workspace-mouse-capture:focus {
-	border-color: var(--interactive-accent);
-	box-shadow: 0 0 0 2px var(--background-modifier-border-focus);
-	outline: none;
-}
-
-.adaptive-workspace-mouse-feedback {
-	min-height: var(--line-height-normal);
-	color: var(--text-muted);
-	text-align: center;
-}
-
-.adaptive-workspace-mouse-feedback.is-error {
-	color: var(--text-error);
-}

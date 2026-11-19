@@ -7,30 +7,20 @@ import type {
 } from 'obsidian';
 import type AdaptiveWorkspacePlugin from './main';
 import {
-	formatMouseBinding,
-	mouseBindingsEqual,
-	normalizeMouseBinding,
-} from './mouse-bindings';
-import type {
-	MouseBinding,
-	MouseBindingSettingKey,
-} from './mouse-bindings';
-import { MouseBindingModal } from './ui/mouse-binding-modal';
-import {
 	isEditorStatusEnabled,
 	setEditorStatusEnabled,
 } from './ui/status-bar';
 
 export interface AdaptiveWorkspaceSettings {
 	disableSidebarChanges: boolean;
+	enableMiddleMouseWheel: boolean;
+	invertMiddleMouseWheel: boolean;
 	showEditingModeHeaderControl: boolean;
 	showSidebarChangesHeaderControl: boolean;
 	showSidebarStatusItem: boolean;
-	expandCommandMouseBinding: MouseBinding | null;
 	expandCommandLeftSidebar: SidebarAction;
 	expandCommandRightSidebar: SidebarAction;
 	expandCommandMarkdownMode: MarkdownModeAction;
-	collapseCommandMouseBinding: MouseBinding | null;
 	collapseCommandLeftSidebar: SidebarAction;
 	collapseCommandRightSidebar: SidebarAction;
 	collapseCommandMarkdownMode: MarkdownModeAction;
@@ -68,28 +58,14 @@ const MARKDOWN_MODE_OPTIONS: Record<MarkdownModeAction, string> = {
 
 export const DEFAULT_SETTINGS: AdaptiveWorkspaceSettings = {
 	disableSidebarChanges: false,
+	enableMiddleMouseWheel: false,
+	invertMiddleMouseWheel: false,
 	showEditingModeHeaderControl: true,
 	showSidebarChangesHeaderControl: true,
 	showSidebarStatusItem: false,
-	expandCommandMouseBinding: {
-		input: 'wheel-up',
-		heldButtons: [4],
-		ctrl: false,
-		alt: false,
-		shift: false,
-		meta: false,
-	},
 	expandCommandLeftSidebar: 'expand',
 	expandCommandRightSidebar: 'expand',
 	expandCommandMarkdownMode: 'unchanged',
-	collapseCommandMouseBinding: {
-		input: 'wheel-down',
-		heldButtons: [4],
-		ctrl: false,
-		alt: false,
-		shift: false,
-		meta: false,
-	},
 	collapseCommandLeftSidebar: 'collapse',
 	collapseCommandRightSidebar: 'collapse',
 	collapseCommandMarkdownMode: 'unchanged',
@@ -111,27 +87,19 @@ export function normalizeSettings(data: unknown): AdaptiveWorkspaceSettings {
 	const saved = data && typeof data === 'object'
 		? data as Record<string, unknown>
 		: {};
-	const expandCommandMouseBinding = getMouseBinding(
-		saved,
-		'expandCommandMouseBinding',
-		DEFAULT_SETTINGS.expandCommandMouseBinding,
-	);
-	let collapseCommandMouseBinding = getMouseBinding(
-		saved,
-		'collapseCommandMouseBinding',
-		DEFAULT_SETTINGS.collapseCommandMouseBinding,
-	);
-	if (mouseBindingsEqual(
-		expandCommandMouseBinding,
-		collapseCommandMouseBinding,
-	)) {
-		collapseCommandMouseBinding = null;
-	}
 
 	return {
 		disableSidebarChanges: getBoolean(
 			saved.disableSidebarChanges,
 			DEFAULT_SETTINGS.disableSidebarChanges,
+		),
+		enableMiddleMouseWheel: getBoolean(
+			saved.enableMiddleMouseWheel,
+			DEFAULT_SETTINGS.enableMiddleMouseWheel,
+		),
+		invertMiddleMouseWheel: getBoolean(
+			saved.invertMiddleMouseWheel,
+			DEFAULT_SETTINGS.invertMiddleMouseWheel,
 		),
 		showEditingModeHeaderControl: getHeaderControlVisibility(
 			saved.showEditingModeHeaderControl,
@@ -149,7 +117,6 @@ export function normalizeSettings(data: unknown): AdaptiveWorkspaceSettings {
 			saved.showSidebarStatusItem,
 			DEFAULT_SETTINGS.showSidebarStatusItem,
 		),
-		expandCommandMouseBinding,
 		expandCommandLeftSidebar: getSidebarAction(
 			saved.expandCommandLeftSidebar,
 			saved.expandLeftSidebar,
@@ -164,7 +131,6 @@ export function normalizeSettings(data: unknown): AdaptiveWorkspaceSettings {
 			saved.expandCommandMarkdownMode,
 			DEFAULT_SETTINGS.expandCommandMarkdownMode,
 		),
-		collapseCommandMouseBinding,
 		collapseCommandLeftSidebar: getSidebarAction(
 			saved.collapseCommandLeftSidebar,
 			saved.collapseLeftSidebar,
@@ -184,23 +150,6 @@ export function normalizeSettings(data: unknown): AdaptiveWorkspaceSettings {
 
 function getBoolean(value: unknown, defaultValue: boolean): boolean {
 	return typeof value === 'boolean' ? value : defaultValue;
-}
-
-function getMouseBinding(
-	saved: Record<string, unknown>,
-	key: MouseBindingSettingKey,
-	defaultValue: MouseBinding | null,
-): MouseBinding | null {
-	if (Object.prototype.hasOwnProperty.call(saved, key)) {
-		return normalizeMouseBinding(saved[key]);
-	}
-	if (!defaultValue) {
-		return null;
-	}
-	return {
-		...defaultValue,
-		heldButtons: [...defaultValue.heldButtons],
-	};
 }
 
 function getHeaderControlVisibility(
@@ -343,11 +292,32 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 			},
 			{
 				type: 'group',
+				heading: 'Mouse',
+				items: [
+					{
+						name: 'Middle mouse + wheel',
+						control: {
+							type: 'toggle',
+							key: 'enableMiddleMouseWheel',
+							defaultValue:
+								DEFAULT_SETTINGS.enableMiddleMouseWheel,
+						},
+					},
+					{
+						name: 'Invert direction',
+						control: {
+							type: 'toggle',
+							key: 'invertMiddleMouseWheel',
+							defaultValue:
+								DEFAULT_SETTINGS.invertMiddleMouseWheel,
+						},
+					},
+				],
+			},
+			{
+				type: 'group',
 				heading: 'Zoom-in workspace',
 				items: [
-					this.createMouseBindingSetting(
-						'expandCommandMouseBinding',
-					),
 					this.createSidebarSetting(
 						'Left sidebar',
 						'expandCommandLeftSidebar',
@@ -363,9 +333,6 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 				type: 'group',
 				heading: 'Zoom-out workspace',
 				items: [
-					this.createMouseBindingSetting(
-						'collapseCommandMouseBinding',
-					),
 					this.createSidebarSetting(
 						'Left sidebar',
 						'collapseCommandLeftSidebar',
@@ -390,51 +357,6 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 				],
 			},
 		];
-	}
-
-	private createMouseBindingSetting(
-		key: MouseBindingSettingKey,
-	): SettingDefinition<SettingKey> {
-		return {
-			name: 'Mouse binding',
-			render: (setting) => {
-				const binding = this.plugin.settings[key];
-				setting.addButton((button) => button
-					.setButtonText(formatMouseBinding(binding))
-					.setTooltip('Set binding')
-					.onClick(() => {
-						new MouseBindingModal(this.app, (newBinding) => {
-							void this.setMouseBinding(key, newBinding);
-						}).open();
-					}));
-
-				if (binding) {
-					setting.addExtraButton((button) => button
-						.setIcon('x')
-						.setTooltip('Clear binding')
-						.onClick(() => {
-							void this.setMouseBinding(key, null);
-						}));
-				}
-			},
-		};
-	}
-
-	private async setMouseBinding(
-		key: MouseBindingSettingKey,
-		binding: MouseBinding | null,
-	): Promise<void> {
-		const otherKey: MouseBindingSettingKey =
-			key === 'expandCommandMouseBinding'
-				? 'collapseCommandMouseBinding'
-				: 'expandCommandMouseBinding';
-
-		if (mouseBindingsEqual(binding, this.plugin.settings[otherKey])) {
-			this.plugin.settings[otherKey] = null;
-		}
-		this.plugin.settings[key] = binding;
-		await this.plugin.saveSettings();
-		this.update();
 	}
 
 	private createSidebarSetting(

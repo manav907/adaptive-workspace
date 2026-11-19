@@ -11,9 +11,9 @@ Configure sidebar and Markdown actions under **Settings → Adaptive Workspace**
 
 The default hotkeys are **Mod+=** and **Mod+-**.
 
-## Mouse bindings
+## Mouse wheel
 
-The defaults are **MB5 + Wheel up** and **MB5 + Wheel down**. Mouse bindings support keyboard and held mouse-button modifiers. Bindings match modifiers exactly.
+Optionally hold the middle mouse button and scroll to run the workspace commands. The direction can be inverted in the plugin settings.
 
 ## Installation
 
