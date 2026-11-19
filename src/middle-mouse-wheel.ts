@@ -16,19 +16,30 @@ function registerWindowGesture(
 	targetWindow: Window,
 	plugin: AdaptiveWorkspacePlugin,
 ): void {
-	let chordUsed = false;
+	let middleButtonPressed = false;
 	let suppressClickUntil = 0;
 	let commandQueue = Promise.resolve();
+
+	component.registerDomEvent(targetWindow, 'mousedown', (event) => {
+		if (!plugin.settings.enableMiddleMouseWheel
+			|| event.button !== MIDDLE_BUTTON) {
+			return;
+		}
+
+		middleButtonPressed = true;
+		consumeEvent(event);
+	}, { capture: true });
 
 	component.registerDomEvent(targetWindow, 'wheel', (event) => {
 		if (!plugin.settings.enableMiddleMouseWheel
 			|| event.deltaY === 0
-			|| (event.buttons & MIDDLE_BUTTON_MASK) === 0) {
+			|| (!middleButtonPressed
+				&& (event.buttons & MIDDLE_BUTTON_MASK) === 0)) {
 			return;
 		}
 
 		consumeEvent(event);
-		chordUsed = true;
+		middleButtonPressed = true;
 
 		const wheelUp = event.deltaY < 0;
 		const zoomIn = plugin.settings.invertMiddleMouseWheel
@@ -49,12 +60,12 @@ function registerWindowGesture(
 	}, { capture: true, passive: false });
 
 	component.registerDomEvent(targetWindow, 'mouseup', (event) => {
-		if (event.button !== MIDDLE_BUTTON || !chordUsed) {
+		if (event.button !== MIDDLE_BUTTON || !middleButtonPressed) {
 			return;
 		}
 
 		consumeEvent(event);
-		chordUsed = false;
+		middleButtonPressed = false;
 		suppressClickUntil = Date.now() + FOLLOW_UP_SUPPRESSION_MS;
 	}, { capture: true });
 
@@ -70,7 +81,7 @@ function registerWindowGesture(
 	}, { capture: true });
 
 	const resetInputState = (): void => {
-		chordUsed = false;
+		middleButtonPressed = false;
 		suppressClickUntil = 0;
 	};
 	component.registerDomEvent(targetWindow, 'blur', resetInputState);
