@@ -1,7 +1,3 @@
-.status-bar-item.plugin-adaptive-workspace-sidebar.is-active {
-	color: var(--interactive-accent);
-}
-
 .view-action.plugin-adaptive-workspace-control.is-active {
 	color: var(--interactive-accent);
 }

@@ -5,10 +5,6 @@ import type {
 	SettingDefinitionItem,
 } from 'obsidian';
 import type AdaptiveWorkspacePlugin from './main';
-import {
-	isEditorStatusEnabled,
-	setEditorStatusEnabled,
-} from './ui/status-bar';
 
 export interface AdaptiveWorkspaceSettings {
 	disableSidebarChanges: boolean;
@@ -16,7 +12,6 @@ export interface AdaptiveWorkspaceSettings {
 	invertMiddleMouseWheel: boolean;
 	showEditingModeHeaderControl: boolean;
 	showSidebarChangesHeaderControl: boolean;
-	showSidebarStatusItem: boolean;
 	expandCommandLeftSidebar: SidebarAction;
 	expandCommandRightSidebar: SidebarAction;
 	expandCommandMarkdownMode: MarkdownModeAction;
@@ -39,7 +34,7 @@ type SidebarSettingKey =
 	| 'collapseCommandLeftSidebar'
 	| 'collapseCommandRightSidebar';
 
-type SettingKey = keyof AdaptiveWorkspaceSettings | 'showEditorStatus';
+type SettingKey = keyof AdaptiveWorkspaceSettings;
 
 const SIDEBAR_OPTIONS: Record<SidebarAction, string> = {
 	expand: 'Expand',
@@ -61,7 +56,6 @@ export const DEFAULT_SETTINGS: AdaptiveWorkspaceSettings = {
 	invertMiddleMouseWheel: false,
 	showEditingModeHeaderControl: true,
 	showSidebarChangesHeaderControl: true,
-	showSidebarStatusItem: false,
 	expandCommandLeftSidebar: 'expand',
 	expandCommandRightSidebar: 'expand',
 	expandCommandMarkdownMode: 'reading',
@@ -111,10 +105,6 @@ export function normalizeSettings(data: unknown): AdaptiveWorkspaceSettings {
 			saved.sidebarChangesControlLocation,
 			saved.showSidebarChangesButton,
 			DEFAULT_SETTINGS.showSidebarChangesHeaderControl,
-		),
-		showSidebarStatusItem: getBoolean(
-			saved.showSidebarStatusItem,
-			DEFAULT_SETTINGS.showSidebarStatusItem,
 		),
 		expandCommandLeftSidebar: getSidebarAction(
 			saved.expandCommandLeftSidebar,
@@ -201,22 +191,7 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 		super(app, plugin);
 	}
 
-	getControlValue(key: string): unknown {
-		if (key === 'showEditorStatus') {
-			return isEditorStatusEnabled(this.app);
-		}
-		return super.getControlValue(key);
-	}
-
 	async setControlValue(key: string, value: unknown): Promise<void> {
-		if (key === 'showEditorStatus') {
-			if (typeof value === 'boolean') {
-				await setEditorStatusEnabled(this.app, value);
-			}
-			this.plugin.refreshUi();
-			return;
-		}
-
 		await super.setControlValue(key, value);
 		this.refreshDomState();
 		this.plugin.refreshUi();
@@ -304,22 +279,6 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 							key: 'showSidebarChangesHeaderControl',
 							defaultValue:
 								DEFAULT_SETTINGS.showSidebarChangesHeaderControl,
-						},
-					},
-					{
-						name: 'Obsidian editing mode in status bar',
-						control: {
-							type: 'toggle',
-							key: 'showEditorStatus',
-							defaultValue: false,
-						},
-					},
-					{
-						name: 'Sidebar changes in status bar',
-						control: {
-							type: 'toggle',
-							key: 'showSidebarStatusItem',
-							defaultValue: DEFAULT_SETTINGS.showSidebarStatusItem,
 						},
 					},
 				],

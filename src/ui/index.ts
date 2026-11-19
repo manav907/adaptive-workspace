@@ -3,17 +3,11 @@ import {
 	refreshMarkdownHeaderControls,
 	registerMarkdownHeaderControls,
 } from './markdown-header-controls';
-import {
-	refreshSidebarStatusItem,
-	registerSidebarStatusItem,
-} from './status-bar';
 
 export function refreshUi(plugin: AdaptiveWorkspacePlugin): void {
 	refreshMarkdownHeaderControls(plugin);
-	refreshSidebarStatusItem(plugin);
 }
 
 export function registerUi(plugin: AdaptiveWorkspacePlugin): void {
 	registerMarkdownHeaderControls(plugin);
-	registerSidebarStatusItem(plugin);
 }
