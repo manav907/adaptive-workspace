@@ -18,7 +18,7 @@
 		"productivity"
 	],
 	"author": "manav907",
-	"license": "0-BSD",
+	"license": "0BSD",
 	"engines": {
 		"node": "^20.19.0 || ^22.13.0 || >=24"
 	},

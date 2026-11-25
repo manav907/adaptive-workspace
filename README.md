@@ -2,6 +2,8 @@
 
 Adaptive Workspace adds two commands that coordinate zoom, sidebars, and the active Markdown view.
 
+Available on desktop only.
+
 ## Commands
 
 - **Zoom-in workspace** zooms in and applies its configured actions.
@@ -12,6 +14,10 @@ Configure sidebar and Markdown actions under **Settings → Adaptive Workspace**
 ## Mouse wheel
 
 Each workspace command can use a custom wheel binding. Bind Ctrl, Alt, Shift, Meta, middle mouse, MB4, or MB5 with either wheel direction. Mouse buttons are reserved only while assigned to a mouse-only binding. MB5 + wheel is the default.
+
+Wheel bindings do not work in every Obsidian window, including the separate Settings window. Keyboard bindings work across windows; assign them under **Settings → Hotkeys**.
+
+Reserved mouse buttons lose their normal click actions, even without scrolling: middle-click actions and autoscroll, or MB4/MB5 Back/Forward navigation. Remove all bindings using a button to restore its normal behavior. Keyboard + wheel bindings do not reserve mouse buttons.
 
 ## Installation
 
@@ -27,7 +33,7 @@ Until packaged releases are available, install the plugin manually:
 
 Requirements:
 
-- Obsidian 1.13.0 or newer
+- Obsidian Desktop 1.13.0 or newer
 - Node.js 20.19, 22.13, or 24 and newer
 - npm
 

@@ -5,5 +5,5 @@
 	"minAppVersion": "1.13.0",
 	"description": "Control zoom, sidebars, and Markdown views.",
 	"author": "manav907",
-	"isDesktopOnly": false
+	"isDesktopOnly": true
 }
