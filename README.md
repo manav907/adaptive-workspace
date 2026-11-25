@@ -11,7 +11,7 @@ Configure sidebar and Markdown actions under **Settings → Adaptive Workspace**
 
 ## Mouse wheel
 
-Middle-mouse wheel control is enabled by default. Hold the middle mouse button and scroll to run the workspace commands. While enabled, the plugin captures middle-button clicks, so middle-click autoscroll is unavailable. The control can be disabled or its direction inverted in the plugin settings.
+Each workspace command can use a custom wheel binding. Bind Ctrl, Alt, Shift, Meta, middle mouse, MB4, or MB5 with either wheel direction. Mouse buttons are reserved only while assigned to a mouse-only binding. MB5 + wheel is the default.
 
 ## Installation
 

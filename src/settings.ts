@@ -5,11 +5,22 @@ import type {
 	SettingDefinitionItem,
 } from 'obsidian';
 import type AdaptiveWorkspacePlugin from './main';
+import {
+	formatWheelBinding,
+	wheelBindingsEqual,
+	normalizeWheelBinding,
+} from './wheel-binding';
+import type {
+	WheelBinding,
+	WheelBindingSettingKey,
+	WheelMouseButton,
+} from './wheel-binding';
+import { WheelBindingModal } from './ui/wheel-binding-modal';
 
 export interface AdaptiveWorkspaceSettings {
 	disableSidebarChanges: boolean;
-	enableMiddleMouseWheel: boolean;
-	invertMiddleMouseWheel: boolean;
+	zoomInWheelBinding: WheelBinding | null;
+	zoomOutWheelBinding: WheelBinding | null;
 	showEditingModeHeaderControl: boolean;
 	showSidebarChangesHeaderControl: boolean;
 	expandCommandLeftSidebar: SidebarAction;
@@ -52,16 +63,30 @@ const MARKDOWN_MODE_OPTIONS: Record<MarkdownModeAction, string> = {
 
 export const DEFAULT_SETTINGS: AdaptiveWorkspaceSettings = {
 	disableSidebarChanges: false,
-	enableMiddleMouseWheel: true,
-	invertMiddleMouseWheel: false,
+	zoomInWheelBinding: {
+		direction: 'up',
+		button: 4,
+		ctrl: false,
+		alt: false,
+		shift: false,
+		meta: false,
+	},
+	zoomOutWheelBinding: {
+		direction: 'down',
+		button: 4,
+		ctrl: false,
+		alt: false,
+		shift: false,
+		meta: false,
+	},
 	showEditingModeHeaderControl: true,
 	showSidebarChangesHeaderControl: true,
 	expandCommandLeftSidebar: 'expand',
 	expandCommandRightSidebar: 'expand',
-	expandCommandMarkdownMode: 'reading',
+	expandCommandMarkdownMode: 'unchanged',
 	collapseCommandLeftSidebar: 'collapse',
 	collapseCommandRightSidebar: 'collapse',
-	collapseCommandMarkdownMode: 'edit',
+	collapseCommandMarkdownMode: 'unchanged',
 };
 
 function isSidebarAction(value: unknown): value is SidebarAction {
@@ -80,20 +105,32 @@ export function normalizeSettings(data: unknown): AdaptiveWorkspaceSettings {
 	const saved = data && typeof data === 'object'
 		? data as Record<string, unknown>
 		: {};
+	const legacyWheelBindings = getLegacyWheelBindings(saved);
+	const zoomInWheelBinding = getWheelBinding(
+		saved,
+		'zoomInWheelBinding',
+		legacyWheelBindings
+			? legacyWheelBindings.zoomIn
+			: DEFAULT_SETTINGS.zoomInWheelBinding,
+	);
+	let zoomOutWheelBinding = getWheelBinding(
+		saved,
+		'zoomOutWheelBinding',
+		legacyWheelBindings
+			? legacyWheelBindings.zoomOut
+			: DEFAULT_SETTINGS.zoomOutWheelBinding,
+	);
+	if (wheelBindingsEqual(zoomInWheelBinding, zoomOutWheelBinding)) {
+		zoomOutWheelBinding = null;
+	}
 
 	return {
 		disableSidebarChanges: getBoolean(
 			saved.disableSidebarChanges,
 			DEFAULT_SETTINGS.disableSidebarChanges,
 		),
-		enableMiddleMouseWheel: getBoolean(
-			saved.enableMiddleMouseWheel,
-			DEFAULT_SETTINGS.enableMiddleMouseWheel,
-		),
-		invertMiddleMouseWheel: getBoolean(
-			saved.invertMiddleMouseWheel,
-			DEFAULT_SETTINGS.invertMiddleMouseWheel,
-		),
+		zoomInWheelBinding,
+		zoomOutWheelBinding,
 		showEditingModeHeaderControl: getHeaderControlVisibility(
 			saved.showEditingModeHeaderControl,
 			saved.editingModeControlLocation,
@@ -139,6 +176,57 @@ export function normalizeSettings(data: unknown): AdaptiveWorkspaceSettings {
 
 function getBoolean(value: unknown, defaultValue: boolean): boolean {
 	return typeof value === 'boolean' ? value : defaultValue;
+}
+
+function cloneWheelBinding(binding: WheelBinding | null): WheelBinding | null {
+	return binding ? { ...binding } : null;
+}
+
+function getWheelBinding(
+	saved: Record<string, unknown>,
+	key: WheelBindingSettingKey,
+	defaultValue: WheelBinding | null,
+): WheelBinding | null {
+	if (Object.prototype.hasOwnProperty.call(saved, key)) {
+		return normalizeWheelBinding(saved[key]);
+	}
+	return cloneWheelBinding(defaultValue);
+}
+
+function getLegacyWheelBindings(saved: Record<string, unknown>): {
+	zoomIn: WheelBinding | null;
+	zoomOut: WheelBinding | null;
+} | null {
+	const hasLegacySettings = typeof saved.enableMiddleMouseWheel === 'boolean'
+		|| typeof saved.enableSideMouseWheel === 'boolean'
+		|| typeof saved.invertMiddleMouseWheel === 'boolean';
+	if (!hasLegacySettings) {
+		return null;
+	}
+
+	let button: WheelMouseButton | null = null;
+	if (saved.enableSideMouseWheel === true) {
+		button = 4;
+	} else if (saved.enableMiddleMouseWheel !== false) {
+		button = 1;
+	}
+	if (button === null) {
+		return { zoomIn: null, zoomOut: null };
+	}
+
+	const inverted = saved.invertMiddleMouseWheel === true;
+	const createBinding = (direction: 'up' | 'down'): WheelBinding => ({
+		direction,
+		button,
+		ctrl: false,
+		alt: false,
+		shift: false,
+		meta: false,
+	});
+	return {
+		zoomIn: createBinding(inverted ? 'down' : 'up'),
+		zoomOut: createBinding(inverted ? 'up' : 'down'),
+	};
 }
 
 function getHeaderControlVisibility(
@@ -203,6 +291,7 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 				type: 'group',
 				heading: 'Zoom-in workspace',
 				items: [
+					this.createWheelBindingSetting('zoomInWheelBinding'),
 					this.createSidebarSetting(
 						'Left sidebar',
 						'expandCommandLeftSidebar',
@@ -218,6 +307,7 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 				type: 'group',
 				heading: 'Zoom-out workspace',
 				items: [
+					this.createWheelBindingSetting('zoomOutWheelBinding'),
 					this.createSidebarSetting(
 						'Left sidebar',
 						'collapseCommandLeftSidebar',
@@ -227,36 +317,6 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 						'collapseCommandRightSidebar',
 					),
 					this.createMarkdownModeSetting('collapseCommandMarkdownMode'),
-				],
-			},
-			{
-				type: 'group',
-				heading: 'Input',
-				items: [
-					{
-						name: 'Hotkeys',
-						desc: 'Assign shortcuts under Settings → Hotkeys.',
-					},
-					{
-						name: 'Enable middle mouse + wheel',
-						control: {
-							type: 'toggle',
-							key: 'enableMiddleMouseWheel',
-							defaultValue:
-								DEFAULT_SETTINGS.enableMiddleMouseWheel,
-						},
-					},
-					{
-						name: 'Invert wheel direction',
-						control: {
-							type: 'toggle',
-							key: 'invertMiddleMouseWheel',
-							defaultValue:
-								DEFAULT_SETTINGS.invertMiddleMouseWheel,
-							disabled: () =>
-								!this.plugin.settings.enableMiddleMouseWheel,
-						},
-					},
 				],
 			},
 			{
@@ -284,6 +344,50 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 				],
 			},
 		];
+	}
+
+	private createWheelBindingSetting(
+		key: WheelBindingSettingKey,
+	): SettingDefinition<SettingKey> {
+		return {
+			name: 'Wheel binding',
+			desc: 'Keyboard bindings work across all windows. Settings → Hotkeys',
+			render: (setting) => {
+				const binding = this.plugin.settings[key];
+				setting.addButton((button) => button
+					.setButtonText(formatWheelBinding(binding))
+					.setTooltip('Set binding')
+					.onClick(() => {
+						new WheelBindingModal(this.app, (newBinding) => {
+							void this.setWheelBinding(key, newBinding);
+						}).open();
+					}));
+
+				if (binding) {
+					setting.addExtraButton((button) => button
+						.setIcon('x')
+						.setTooltip('Clear binding')
+						.onClick(() => {
+							void this.setWheelBinding(key, null);
+						}));
+				}
+			},
+		};
+	}
+
+	private async setWheelBinding(
+		key: WheelBindingSettingKey,
+		binding: WheelBinding | null,
+	): Promise<void> {
+		const otherKey: WheelBindingSettingKey = key === 'zoomInWheelBinding'
+			? 'zoomOutWheelBinding'
+			: 'zoomInWheelBinding';
+		if (wheelBindingsEqual(binding, this.plugin.settings[otherKey])) {
+			this.plugin.settings[otherKey] = null;
+		}
+		this.plugin.settings[key] = binding;
+		await this.plugin.saveSettings();
+		this.update();
 	}
 
 	private createSidebarSetting(
