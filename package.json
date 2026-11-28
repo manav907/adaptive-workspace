@@ -1,6 +1,6 @@
 {
 	"name": "adaptive-workspace",
-	"version": "0.1.0",
+	"version": "0.1.2",
 	"description": "Control zoom, sidebars, and Markdown views.",
 	"main": "main.js",
 	"type": "module",
