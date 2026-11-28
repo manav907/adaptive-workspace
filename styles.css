@@ -1,3 +1,30 @@
+.plugin-adaptive-workspace-mode-group {
+	display: flex;
+	align-items: center;
+	padding: 2px;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: var(--radius-s);
+	background: var(--background-secondary);
+}
+
+.plugin-adaptive-workspace-mode-group .view-action {
+	margin: 0;
+	border-radius: calc(var(--radius-s) - 2px);
+}
+
+.plugin-adaptive-workspace-mode-group
+	.view-action.plugin-adaptive-workspace-control.is-active {
+	color: var(--text-on-accent);
+	background: var(--interactive-accent);
+}
+
+.plugin-adaptive-workspace-hide-native-view-switcher
+	.view-action.clickable-icon[aria-label^="Current view: reading"],
+.plugin-adaptive-workspace-hide-native-view-switcher
+	.view-action.clickable-icon[aria-label^="Current view: editing"] {
+	display: none;
+}
+
 .view-action.plugin-adaptive-workspace-control.is-active {
 	color: var(--interactive-accent);
 }

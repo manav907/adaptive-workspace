@@ -1,18 +1,48 @@
 import { MarkdownView, setIcon, setTooltip } from 'obsidian';
 import type AdaptiveWorkspacePlugin from '../main';
 import {
-	getEditingModePresentation,
 	getSidebarChangesPresentation,
 	HIDDEN_CONTROL_CLASS,
 } from './control-presentation';
 import type { ControlPresentation } from './control-presentation';
 
+type MarkdownDisplayMode = 'source' | 'live' | 'read';
+
+interface MarkdownModeControl {
+	element: HTMLElement;
+	refresh(): void;
+}
+
 interface ViewControls {
-	editingMode: HTMLElement;
+	markdownModes: MarkdownModeControl;
 	sidebarChanges: HTMLElement;
 }
 
+const MARKDOWN_MODES = [
+	{
+		mode: 'source',
+		icon: 'file-code-2',
+		label: 'Source mode',
+	},
+	{
+		mode: 'live',
+		icon: 'file-pen-line',
+		label: 'Live Preview',
+	},
+	{
+		mode: 'read',
+		icon: 'book-open',
+		label: 'Reading view',
+	},
+] as const satisfies ReadonlyArray<{
+	mode: MarkdownDisplayMode;
+	icon: string;
+	label: string;
+}>;
+
 const refreshers = new WeakMap<AdaptiveWorkspacePlugin, () => void>();
+const HIDE_NATIVE_VIEW_SWITCHER_CLASS =
+	'plugin-adaptive-workspace-hide-native-view-switcher';
 
 function updateControl(
 	control: HTMLElement,
@@ -23,6 +53,77 @@ function updateControl(
 	control.setAttribute('aria-label', presentation.label);
 	setIcon(control, presentation.icon);
 	setTooltip(control, presentation.label);
+}
+
+function getMarkdownMode(view: MarkdownView): MarkdownDisplayMode {
+	const state = view.getState();
+
+	if (state.mode === 'preview') {
+		return 'read';
+	}
+
+	return state.source === true ? 'source' : 'live';
+}
+
+async function setMarkdownMode(
+	view: MarkdownView,
+	mode: MarkdownDisplayMode,
+): Promise<void> {
+	const state = view.getState();
+	const nextState = mode === 'read'
+		? { ...state, mode: 'preview' }
+		: {
+			...state,
+			mode: 'source',
+			source: mode === 'source',
+		};
+
+	await view.setState(nextState, { history: false });
+}
+
+function addMarkdownModeControl(view: MarkdownView): MarkdownModeControl {
+	const group = view.containerEl.ownerDocument.createElement('div');
+	group.classList.add('plugin-adaptive-workspace-mode-group');
+	group.setAttribute('role', 'toolbar');
+	group.setAttribute('aria-label', 'Markdown view mode');
+
+	const buttons = MARKDOWN_MODES.map(({ mode, icon, label }) => {
+		const button = view.addAction(icon, label, async () => {
+			if (getMarkdownMode(view) === mode) {
+				return;
+			}
+
+			await setMarkdownMode(view, mode);
+			refresh();
+		});
+		button.classList.add('plugin-adaptive-workspace-control');
+		button.setAttribute('role', 'button');
+		setTooltip(button, label);
+
+		return { button, mode };
+	});
+
+	buttons[0]?.button.before(group);
+	for (const { button } of buttons) {
+		group.append(button);
+	}
+
+	function refresh(): void {
+		const currentMode = getMarkdownMode(view);
+
+		for (const { button, mode } of buttons) {
+			const selected = mode === currentMode;
+			button.classList.toggle('is-active', selected);
+			button.setAttribute('aria-pressed', String(selected));
+		}
+	}
+
+	refresh();
+
+	return {
+		element: group,
+		refresh,
+	};
 }
 
 export function refreshMarkdownHeaderControls(
@@ -44,24 +145,7 @@ export function registerMarkdownHeaderControls(
 			}
 
 			const view = leaf.view;
-			const editingMode = view.addAction(
-				'file-pen-line',
-				'Use Source mode',
-				async () => {
-					const state = view.getState();
-					await view.setState(
-						{
-							...state,
-							mode: 'source',
-							source: state.source !== true,
-						},
-						{ history: false },
-					);
-					refreshMarkdownHeaderControls(plugin);
-				},
-			);
-			editingMode.classList.add('plugin-adaptive-workspace-control');
-			editingMode.setAttribute('role', 'button');
+			const markdownModes = addMarkdownModeControl(view);
 
 			const sidebarChanges = view.addAction(
 				'panels-top-left',
@@ -76,7 +160,7 @@ export function registerMarkdownHeaderControls(
 			sidebarChanges.setAttribute('role', 'button');
 
 			viewControls.set(view, {
-				editingMode,
+				markdownModes,
 				sidebarChanges,
 			});
 		}
@@ -84,9 +168,12 @@ export function registerMarkdownHeaderControls(
 
 	const refreshControls = (): void => {
 		for (const [view, controls] of viewControls) {
-			if (!controls.editingMode.isConnected
+			if (!controls.markdownModes.element.isConnected
 				|| !controls.sidebarChanges.isConnected) {
-				controls.editingMode.remove();
+				view.containerEl.classList.remove(
+					HIDE_NATIVE_VIEW_SWITCHER_CLASS,
+				);
+				controls.markdownModes.element.remove();
 				controls.sidebarChanges.remove();
 				viewControls.delete(view);
 			}
@@ -95,9 +182,8 @@ export function registerMarkdownHeaderControls(
 		addControls();
 
 		for (const [view, controls] of viewControls) {
-
-			controls.editingMode.hidden = false;
-			controls.editingMode.classList.toggle(
+			controls.markdownModes.element.hidden = false;
+			controls.markdownModes.element.classList.toggle(
 				HIDDEN_CONTROL_CLASS,
 				!plugin.settings.showEditingModeHeaderControl,
 			);
@@ -106,12 +192,13 @@ export function registerMarkdownHeaderControls(
 				HIDDEN_CONTROL_CLASS,
 				!plugin.settings.showSidebarChangesHeaderControl,
 			);
-
-			const state = view.getState();
-			updateControl(
-				controls.editingMode,
-				getEditingModePresentation(state.source === true),
+			view.containerEl.classList.toggle(
+				HIDE_NATIVE_VIEW_SWITCHER_CLASS,
+				plugin.settings.showEditingModeHeaderControl
+					&& plugin.settings.hideNativeMarkdownViewSwitcher,
 			);
+
+			controls.markdownModes.refresh();
 			updateControl(
 				controls.sidebarChanges,
 				getSidebarChangesPresentation(
@@ -131,8 +218,11 @@ export function registerMarkdownHeaderControls(
 	);
 	plugin.register(() => {
 		refreshers.delete(plugin);
-		for (const controls of viewControls.values()) {
-			controls.editingMode.remove();
+		for (const [view, controls] of viewControls) {
+			view.containerEl.classList.remove(
+				HIDE_NATIVE_VIEW_SWITCHER_CLASS,
+			);
+			controls.markdownModes.element.remove();
 			controls.sidebarChanges.remove();
 		}
 		viewControls.clear();

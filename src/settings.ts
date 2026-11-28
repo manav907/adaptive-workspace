@@ -22,6 +22,7 @@ export interface AdaptiveWorkspaceSettings {
 	zoomInWheelBinding: WheelBinding | null;
 	zoomOutWheelBinding: WheelBinding | null;
 	showEditingModeHeaderControl: boolean;
+	hideNativeMarkdownViewSwitcher: boolean;
 	showSidebarChangesHeaderControl: boolean;
 	expandCommandLeftSidebar: SidebarAction;
 	expandCommandRightSidebar: SidebarAction;
@@ -80,6 +81,7 @@ export const DEFAULT_SETTINGS: AdaptiveWorkspaceSettings = {
 		meta: false,
 	},
 	showEditingModeHeaderControl: true,
+	hideNativeMarkdownViewSwitcher: false,
 	showSidebarChangesHeaderControl: true,
 	expandCommandLeftSidebar: 'expand',
 	expandCommandRightSidebar: 'expand',
@@ -136,6 +138,10 @@ export function normalizeSettings(data: unknown): AdaptiveWorkspaceSettings {
 			saved.editingModeControlLocation,
 			saved.showSourceModeButton,
 			DEFAULT_SETTINGS.showEditingModeHeaderControl,
+		),
+		hideNativeMarkdownViewSwitcher: getBoolean(
+			saved.hideNativeMarkdownViewSwitcher,
+			DEFAULT_SETTINGS.hideNativeMarkdownViewSwitcher,
 		),
 		showSidebarChangesHeaderControl: getHeaderControlVisibility(
 			saved.showSidebarChangesHeaderControl,
@@ -324,12 +330,22 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 				heading: 'Interface controls',
 				items: [
 					{
-						name: 'Editing mode in Markdown header',
+						name: 'Markdown modes in header',
 						control: {
 							type: 'toggle',
 							key: 'showEditingModeHeaderControl',
 							defaultValue:
 								DEFAULT_SETTINGS.showEditingModeHeaderControl,
+						},
+					},
+					{
+						name: 'Hide Obsidian view switcher',
+						desc: 'Hide the built-in Reading and Editing button while Markdown modes are shown.',
+						control: {
+							type: 'toggle',
+							key: 'hideNativeMarkdownViewSwitcher',
+							defaultValue:
+								DEFAULT_SETTINGS.hideNativeMarkdownViewSwitcher,
 						},
 					},
 					{

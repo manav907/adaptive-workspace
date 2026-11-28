@@ -8,24 +8,6 @@ export interface ControlPresentation {
 export const HIDDEN_CONTROL_CLASS =
 	'plugin-adaptive-workspace-is-hidden';
 
-export function getEditingModePresentation(
-	usesSourceMode: boolean,
-): ControlPresentation {
-	return usesSourceMode
-		? {
-			active: true,
-			icon: 'file-code-2',
-			label: 'Use Live Preview',
-			pressed: true,
-		}
-		: {
-			active: false,
-			icon: 'file-pen-line',
-			label: 'Use Source mode',
-			pressed: false,
-		};
-}
-
 export function getSidebarChangesPresentation(
 	disabled: boolean,
 ): ControlPresentation {
