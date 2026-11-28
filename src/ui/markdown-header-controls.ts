@@ -1,5 +1,6 @@
 import { MarkdownView, setIcon, setTooltip } from 'obsidian';
 import type AdaptiveWorkspacePlugin from '../main';
+import { toggleBothSidebars } from '../commands/workspace';
 import {
 	getSidebarChangesPresentation,
 	HIDDEN_CONTROL_CLASS,
@@ -43,6 +44,30 @@ const MARKDOWN_MODES = [
 const refreshers = new WeakMap<AdaptiveWorkspacePlugin, () => void>();
 const HIDE_NATIVE_VIEW_SWITCHER_CLASS =
 	'plugin-adaptive-workspace-hide-native-view-switcher';
+
+async function toggleSidebarChanges(
+	plugin: AdaptiveWorkspacePlugin,
+): Promise<void> {
+	plugin.settings.disableSidebarChanges =
+		!plugin.settings.disableSidebarChanges;
+	await plugin.saveSettings();
+}
+
+async function runSidebarControlAction(
+	plugin: AdaptiveWorkspacePlugin,
+	rightClick: boolean,
+): Promise<void> {
+	const toggleSidebars = rightClick
+		? !plugin.settings.invertSidebarControlClicks
+		: plugin.settings.invertSidebarControlClicks;
+
+	if (toggleSidebars) {
+		toggleBothSidebars(plugin.app);
+		return;
+	}
+
+	await toggleSidebarChanges(plugin);
+}
 
 function updateControl(
 	control: HTMLElement,
@@ -150,14 +175,19 @@ export function registerMarkdownHeaderControls(
 			const sidebarChanges = view.addAction(
 				'panels-top-left',
 				'Disable sidebar changes',
-				async () => {
-					plugin.settings.disableSidebarChanges =
-						!plugin.settings.disableSidebarChanges;
-					await plugin.saveSettings();
-				},
+				() => runSidebarControlAction(plugin, false),
 			);
 			sidebarChanges.classList.add('plugin-adaptive-workspace-control');
 			sidebarChanges.setAttribute('role', 'button');
+			plugin.registerDomEvent(
+				sidebarChanges,
+				'contextmenu',
+				(event) => {
+					event.preventDefault();
+					event.stopPropagation();
+					void runSidebarControlAction(plugin, true);
+				},
+			);
 
 			viewControls.set(view, {
 				markdownModes,
@@ -203,6 +233,7 @@ export function registerMarkdownHeaderControls(
 				controls.sidebarChanges,
 				getSidebarChangesPresentation(
 					plugin.settings.disableSidebarChanges,
+					plugin.settings.invertSidebarControlClicks,
 				),
 			);
 		}

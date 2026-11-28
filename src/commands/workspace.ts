@@ -1,5 +1,9 @@
 import { MarkdownView } from 'obsidian';
-import type { App } from 'obsidian';
+import type {
+	App,
+	WorkspaceMobileDrawer,
+	WorkspaceSidedock,
+} from 'obsidian';
 import type {
 	AdaptiveWorkspaceSettings,
 	MarkdownModeAction,
@@ -7,16 +11,32 @@ import type {
 } from '../settings';
 import { executeInternalCommand } from '../obsidian-internals';
 
-interface Sidebar {
-	collapse(): void;
-	expand(): void;
-}
+type Sidebar = WorkspaceSidedock | WorkspaceMobileDrawer;
 
 function applySidebarAction(sidebar: Sidebar, action: SidebarAction): void {
 	if (action === 'expand') {
 		sidebar.expand();
 	} else if (action === 'collapse') {
 		sidebar.collapse();
+	}
+}
+
+export function expandBothSidebars(app: App): void {
+	app.workspace.leftSplit.expand();
+	app.workspace.rightSplit.expand();
+}
+
+export function collapseBothSidebars(app: App): void {
+	app.workspace.leftSplit.collapse();
+	app.workspace.rightSplit.collapse();
+}
+
+export function toggleBothSidebars(app: App): void {
+	if (app.workspace.leftSplit.collapsed
+		|| app.workspace.rightSplit.collapsed) {
+		expandBothSidebars(app);
+	} else {
+		collapseBothSidebars(app);
 	}
 }
 

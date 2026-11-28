@@ -8,6 +8,7 @@ Available on desktop only.
 
 - **Zoom-in workspace** zooms in and applies its configured actions.
 - **Zoom-out workspace** zooms out and applies its configured actions.
+- **Expand both sidebars** and **Collapse both sidebars** directly control both sidebars.
 
 Configure sidebar and Markdown actions under **Settings → Adaptive Workspace**. **Edit** preserves the current Live Preview or Source mode; the explicit options switch modes. Assign keyboard shortcuts under **Settings → Hotkeys**. Optional Markdown-header controls select Source mode, Live Preview, or Reading view, and temporarily disable sidebar changes.
 

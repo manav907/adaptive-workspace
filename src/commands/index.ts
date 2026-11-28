@@ -1,5 +1,10 @@
 import type AdaptiveWorkspacePlugin from '../main';
-import { collapseWorkspace, expandWorkspace } from './workspace';
+import {
+	collapseBothSidebars,
+	collapseWorkspace,
+	expandBothSidebars,
+	expandWorkspace,
+} from './workspace';
 
 export function registerCommands(plugin: AdaptiveWorkspacePlugin): void {
 	plugin.addCommand({
@@ -16,5 +21,17 @@ export function registerCommands(plugin: AdaptiveWorkspacePlugin): void {
 		callback: async () => {
 			await collapseWorkspace(plugin.app, plugin.settings);
 		},
+	});
+
+	plugin.addCommand({
+		id: 'expand-both-sidebars',
+		name: 'Expand both sidebars',
+		callback: () => expandBothSidebars(plugin.app),
+	});
+
+	plugin.addCommand({
+		id: 'collapse-both-sidebars',
+		name: 'Collapse both sidebars',
+		callback: () => collapseBothSidebars(plugin.app),
 	});
 }

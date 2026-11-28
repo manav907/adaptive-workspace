@@ -24,6 +24,7 @@ export interface AdaptiveWorkspaceSettings {
 	showEditingModeHeaderControl: boolean;
 	hideNativeMarkdownViewSwitcher: boolean;
 	showSidebarChangesHeaderControl: boolean;
+	invertSidebarControlClicks: boolean;
 	expandCommandLeftSidebar: SidebarAction;
 	expandCommandRightSidebar: SidebarAction;
 	expandCommandMarkdownMode: MarkdownModeAction;
@@ -83,6 +84,7 @@ export const DEFAULT_SETTINGS: AdaptiveWorkspaceSettings = {
 	showEditingModeHeaderControl: true,
 	hideNativeMarkdownViewSwitcher: false,
 	showSidebarChangesHeaderControl: true,
+	invertSidebarControlClicks: false,
 	expandCommandLeftSidebar: 'expand',
 	expandCommandRightSidebar: 'expand',
 	expandCommandMarkdownMode: 'unchanged',
@@ -148,6 +150,10 @@ export function normalizeSettings(data: unknown): AdaptiveWorkspaceSettings {
 			saved.sidebarChangesControlLocation,
 			saved.showSidebarChangesButton,
 			DEFAULT_SETTINGS.showSidebarChangesHeaderControl,
+		),
+		invertSidebarControlClicks: getBoolean(
+			saved.invertSidebarControlClicks,
+			DEFAULT_SETTINGS.invertSidebarControlClicks,
 		),
 		expandCommandLeftSidebar: getSidebarAction(
 			saved.expandCommandLeftSidebar,
@@ -355,6 +361,16 @@ export class AdaptiveWorkspaceSettingTab extends PluginSettingTab {
 							key: 'showSidebarChangesHeaderControl',
 							defaultValue:
 								DEFAULT_SETTINGS.showSidebarChangesHeaderControl,
+						},
+					},
+					{
+						name: 'Invert sidebar button clicks',
+						desc: 'Left-click toggles sidebars; right-click locks or unlocks changes.',
+						control: {
+							type: 'toggle',
+							key: 'invertSidebarControlClicks',
+							defaultValue:
+								DEFAULT_SETTINGS.invertSidebarControlClicks,
 						},
 					},
 				],

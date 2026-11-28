@@ -12,18 +12,26 @@ export const HIDDEN_CONTROL_CLASS =
 
 export function getSidebarChangesPresentation(
 	disabled: boolean,
+	invertClicks: boolean,
 ): ControlPresentation {
+	const changeAction = disabled
+		? 'Enable sidebar changes'
+		: 'Disable sidebar changes';
+	const label = invertClicks
+		? `Expand or collapse sidebars\nRight-click: ${changeAction}`
+		: `${changeAction}\nRight-click: expand or collapse sidebars`;
+
 	return disabled
 		? {
 			active: true,
 			icon: SIDEBAR_CHANGES_ICON,
-			label: 'Enable sidebar changes',
+			label,
 			pressed: true,
 		}
 		: {
 			active: false,
 			icon: SIDEBAR_CHANGES_ICON,
-			label: 'Disable sidebar changes',
+			label,
 			pressed: false,
 		};
 }
