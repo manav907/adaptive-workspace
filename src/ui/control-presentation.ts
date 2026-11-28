@@ -1,3 +1,5 @@
+import { SIDEBAR_CHANGES_ICON } from './icons';
+
 export interface ControlPresentation {
 	active: boolean;
 	icon: string;
@@ -14,13 +16,13 @@ export function getSidebarChangesPresentation(
 	return disabled
 		? {
 			active: true,
-			icon: 'panel-left-close',
+			icon: SIDEBAR_CHANGES_ICON,
 			label: 'Enable sidebar changes',
 			pressed: true,
 		}
 		: {
 			active: false,
-			icon: 'panels-top-left',
+			icon: SIDEBAR_CHANGES_ICON,
 			label: 'Disable sidebar changes',
 			pressed: false,
 		};

@@ -1,4 +1,5 @@
 import type AdaptiveWorkspacePlugin from '../main';
+import { registerPluginIcons } from './icons';
 import {
 	refreshMarkdownHeaderControls,
 	registerMarkdownHeaderControls,
@@ -9,5 +10,6 @@ export function refreshUi(plugin: AdaptiveWorkspacePlugin): void {
 }
 
 export function registerUi(plugin: AdaptiveWorkspacePlugin): void {
+	registerPluginIcons(plugin);
 	registerMarkdownHeaderControls(plugin);
 }
